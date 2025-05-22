@@ -8,16 +8,19 @@ Generador de portafolios para developers con editor visual, temas personalizable
 
 ### 📦 Etapa 1: Setup Inicial
 
-- [ ] Crear repositorio en GitHub (frontend y backend)
-- [ ] Crear estructura de carpetas
-- [ ] Inicializar proyectos con `npm init -y`
-- [ ] Crear archivos base: `docker-compose.yml`, `.dockerignore`, `.gitignore`
+- [x] Crear repositorio en GitHub (frontend y backend)
+- [x] Crear estructura de carpetas
+- [x] Inicializar proyectos con `npm init -y`
+- [x] Crear archivos base: `docker-compose.yml`, `.dockerignore`, `.gitignore`
+- [x] Inicializar frontend con `create-next-app`
+- [x] Configurar TypeScript y Tailwind CSS
+- [x] Dockerfile para frontend
 
-### 🎨 Etapa 2: Frontend (React + Tailwind)
+### 🎨 Etapa 2: Frontend (Next.js + Tailwind)
 
-- [ ] Crear SPA con Vite o Create React App
-- [ ] Configurar Tailwind CSS
-- [ ] Añadir `React Router` para rutas: login, editor, perfil, preview
+- [x] Crear app con `create-next-app` en carpeta `frontend`
+- [x] Configurar Tailwind CSS manualmente
+- [ ] Añadir rutas: login, editor, perfil, preview usando App Router
 - [ ] Implementar sistema de temas (dark/light + paletas)
 - [ ] Implementar componentes base:
   - [ ] Navbar, Sidebar
@@ -65,7 +68,8 @@ Generador de portafolios para developers con editor visual, temas personalizable
 
 ### 🐳 Etapa 7: Dockerización
 
-- [ ] Dockerfile frontend y backend
+- [x] Dockerfile frontend (Next.js)
+- [ ] Dockerfile backend
 - [ ] Docker Compose con PostgreSQL, Redis, Nginx (opcional)
 - [ ] Volúmenes persistentes para PostgreSQL
 - [ ] Variables de entorno con `.env`
@@ -89,7 +93,7 @@ Generador de portafolios para developers con editor visual, temas personalizable
 
 ---
 
-# 📦 Estructura del Proyecto
+## 📦 Estructura del Proyecto
 
 ```
 dev-portfolio-builder/
@@ -144,9 +148,9 @@ dev-portfolio-builder/
 
 ## 🚀 Próximos pasos
 
-1. Crea el repositorio y dockeriza base
-2. Trabaja en frontend y exportación básica
-3. Añade backend con usuarios
-4. Implementa la exportación avanzada
-5. Automatiza el despliegue
-
+1. Terminar setup de frontend con rutas y componentes base
+2. Dockerizar backend y conectar con PostgreSQL
+3. Implementar login y gestión de usuario
+4. Conectar editor visual con backend
+5. Añadir exportación a ZIP y GitHub
+6. Automatizar el despliegue y CI/CD
