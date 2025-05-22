@@ -20,10 +20,16 @@ Generador de portafolios para developers con editor visual, temas personalizable
 
 - [x] Crear app con `create-next-app` en carpeta `frontend`
 - [x] Configurar Tailwind CSS manualmente
-- [ ] Añadir rutas: login, editor, perfil, preview usando App Router
+- [x] Añadir rutas: login, editor, perfil, preview usando App Router
+- [x] Crear componentes principales:
+  - [x] **EditorPage** - Interfaz de edición del portafolio
+  - [x] **LoginPage** - Autenticación de usuarios
+  - [x] **PreviewPage** - Vista previa del portafolio
+  - [x] **ProfilePage** - Gestión de cuenta de usuario
+  - [x] **Footer** - Pie de página consistente con copyright
 - [ ] Implementar sistema de temas (dark/light + paletas)
 - [ ] Implementar componentes base:
-  - [ ] Navbar, Sidebar
+  - [x] Navbar, Sidebar
   - [ ] Editor de bloques (nombre, proyectos, redes)
   - [ ] Previsualización en tiempo real
 - [ ] Implementar editor visual con `react-beautiful-dnd` o `dnd-kit`
@@ -106,7 +112,12 @@ dev-portfolio-builder/
 ├── frontend/
 │   ├── src/
 │   │   ├── components/
+│   │   │   └── Footer.jsx           # ✅ Footer component
 │   │   ├── pages/
+│   │   │   ├── EditorPage.jsx       # ✅ Portfolio editor
+│   │   │   ├── LoginPage.jsx        # ✅ User authentication
+│   │   │   ├── PreviewPage.jsx      # ✅ Portfolio preview
+│   │   │   └── ProfilePage.jsx      # ✅ Account management
 │   │   ├── context/
 │   │   └── App.jsx
 ├── docker/
@@ -120,6 +131,16 @@ dev-portfolio-builder/
 └── README.md
 ```
 
+---
+
+## 📝 Último Commit
+
+**Add main application pages and footer component**
+- ✅ Created EditorPage component for portfolio editing interface
+- ✅ Created LoginPage component for user authentication  
+- ✅ Created PreviewPage component for portfolio preview functionality
+- ✅ Created ProfilePage component for user account management
+- ✅ Added Footer component for consistent site-wide footer with copyright information
 
 ---
 
@@ -148,9 +169,10 @@ dev-portfolio-builder/
 
 ## 🚀 Próximos pasos
 
-1. Terminar setup de frontend con rutas y componentes base
-2. Dockerizar backend y conectar con PostgreSQL
-3. Implementar login y gestión de usuario
-4. Conectar editor visual con backend
-5. Añadir exportación a ZIP y GitHub
-6. Automatizar el despliegue y CI/CD
+1. ✅ ~~Terminar setup de frontend con rutas y componentes base~~
+2. Implementar navegación entre páginas y estado global
+3. Dockerizar backend y conectar con PostgreSQL
+4. Implementar login y gestión de usuario
+5. Conectar editor visual con backend
+6. Añadir exportación a ZIP y GitHub
+7. Automatizar el despliegue y CI/CD
