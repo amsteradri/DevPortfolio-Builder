@@ -1,25 +1,24 @@
 # frontend/Dockerfile
 FROM node:18-alpine
 
-# Instalar pnpm globalmente
-RUN npm install -g pnpm
+# Instalar pnpm de manera más eficiente
+RUN corepack enable && corepack prepare pnpm@latest --activate
 
-# Crear directorio de la app
 WORKDIR /app
 
-# Copiar package.json y pnpm-lock.yaml para instalar dependencias
-COPY package.json pnpm-lock.yaml* ./
+# Copiar solo los archivos necesarios para instalar dependencias
+COPY package.json pnpm-lock.yaml ./
 
-# Instalar dependencias con pnpm
-RUN pnpm install
+# Instalar dependencias con cache y offline mirror
+RUN pnpm install --frozen-lockfile --prefer-offline
 
-# Copiar todo el código fuente
+# Copiar el resto del código
 COPY . .
 
-# Exponer el puerto (Next.js usa 3000 por defecto)
+# Exponer puerto
 EXPOSE 3000
 
-# Comando para correr el servidor de desarrollo
+# Comando para desarrollo
 CMD ["pnpm", "dev"]
 
 
