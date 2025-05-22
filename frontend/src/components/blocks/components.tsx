@@ -3,7 +3,12 @@ import { LucideIcon } from 'lucide-react';
 import React from 'react';
 
 // Importar componentes
-import { HeroMinimal, HeroWithCTA } from './hero/hero';
+import { 
+  HeroMinimal, 
+  HeroWithSocial, 
+  HeroWithBackground, 
+  HeroAsymmetric 
+} from './hero/hero';
 import { AboutSimple, AboutWithIcon } from './about/about';
 import { ProjectsBlock } from './projects/projects';
 import { ContactBlock } from './contact/contact';
@@ -29,8 +34,26 @@ export const COMPONENTS_MAP: Record<ComponentType, ComponentData> = {
     name: 'Hero',
     icon: Code,
     variants: [
-      { component: HeroMinimal, name: 'Minimalista', description: 'Hero simple sin botón CTA' },
-      { component: HeroWithCTA, name: 'Con CTA', description: 'Hero con botón de llamada a la acción' }
+      { 
+        component: HeroMinimal, 
+        name: 'Minimalista', 
+        description: 'Hero con gradiente y diseño centrado' 
+      },
+      { 
+        component: HeroWithSocial, 
+        name: 'Social', 
+        description: 'Hero oscuro con redes sociales y CTA' 
+      },
+      { 
+        component: HeroWithBackground, 
+        name: 'Con Fondo', 
+        description: 'Hero con imagen de fondo y overlay' 
+      },
+      { 
+        component: HeroAsymmetric, 
+        name: 'Asimétrico', 
+        description: 'Hero con diseño de dos columnas' 
+      }
     ]
   },
   about: {
