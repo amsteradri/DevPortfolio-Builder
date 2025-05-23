@@ -16,3 +16,4 @@ docker-volume/
 .vscode/
 backend/src/controllers/__pycache__/aiController.cpython-310.pyc
 backend/src/utils/__pycache__/portfolio_agent.cpython-310.pyc
+backend/src/ia/model/deepseek-coder.gguf
