@@ -12,3 +12,12 @@ services:
       - /app/node_modules
     environment:
       - NODE_ENV=development
+  
+  backend:
+    build:
+      context: ./backend
+    volumes:
+      - ./backend:/app
+    ports:
+      - "5000:5000"
+    restart: always
