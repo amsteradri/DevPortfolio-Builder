@@ -12,21 +12,18 @@ def generate_portfolio(prompt: str) -> str:
             
         llm = Llama(model_path=MODEL_PATH, n_ctx=2048)
 
-        # Parseamos el prompt de string a diccionario
+        # Inicialización de variables
         prompt_data = {}
         current_section = None
         projects = []
         
-        # Añadimos soporte para estilos
+        # Inicialización de estilos con valores por defecto
         styles = {
             'primary_color': '#6366f1',
             'secondary_color': '#3b82f6',
             'text_color': '#1f2937',
             'bg_color': '#ffffff',
-            'accent_color': '#4f46e5',
-            'font_heading': 'Poppins',
-            'font_body': 'Inter',
-            'hero_bg': 'https://images.unsplash.com/photo-1451187580459-43490279c0fa'
+            'accent_color': '#4f46e5'
         }
 
         for line in prompt.split('\n'):
@@ -34,6 +31,14 @@ def generate_portfolio(prompt: str) -> str:
             if not line:
                 continue
                 
+            print("Procesando línea:", line)  # Debug
+            
+            # Detectar sección de proyectos
+            if line.lower() == '# proyectos':
+                print("Iniciando sección de proyectos")  # Debug
+                current_section = 'proyectos'
+                continue
+            
             if ':' in line and not line.startswith('-'):
                 key, value = line.split(':', 1)
                 key = key.lower().strip()
@@ -51,9 +56,6 @@ def generate_portfolio(prompt: str) -> str:
                     prompt_data['email'] = value
                 elif key == 'linkedin':
                     prompt_data['linkedin'] = value
-                elif key == 'proyectos':
-                    current_section = 'proyectos'
-                # Añadimos el parsing de estilos
                 elif key == 'color primario':
                     styles['primary_color'] = value
                 elif key == 'color secundario':
@@ -64,15 +66,11 @@ def generate_portfolio(prompt: str) -> str:
                     styles['bg_color'] = value
                 elif key == 'color acento':
                     styles['accent_color'] = value
-                elif key == 'fuente títulos':
-                    styles['font_heading'] = value
-                elif key == 'fuente texto':
-                    styles['font_body'] = value
-                elif key == 'imagen fondo':
-                    styles['hero_bg'] = value
+                    
             elif line.startswith('-') and current_section == 'proyectos':
                 try:
-                    # Parseamos la línea del proyecto
+                    print("Procesando proyecto:", line)  # Debug
+                    
                     project_line = line[1:].strip()
                     if '(' in project_line and ')' in project_line:
                         name = project_line[:project_line.find('(')].strip()
@@ -89,10 +87,11 @@ def generate_portfolio(prompt: str) -> str:
                             'descripcion': desc or "Proyecto destacado"
                         }
                         projects.append(project)
-                        print(f"Proyecto añadido: {project}")  # Debug
+                        print(f"Proyecto añadido exitosamente: {project}")  # Debug
                 except Exception as e:
-                    print(f"Error procesando proyecto: {str(e)}")
+                    print(f"Error procesando proyecto: {str(e)}")  # Debug
 
+        print(f"Total de proyectos procesados: {len(projects)}")  # Debug
         prompt_data['proyectos'] = projects
 
         # Template HTML base que siempre se usará
@@ -186,9 +185,9 @@ def generate_portfolio(prompt: str) -> str:
             <div class="text-center" data-aos="fade-up">
                 <h1 class="text-6xl font-bold mb-6">[NOMBRE]</h1>
                 <p class="text-2xl mb-8">[PROFESION]</p>
-                <a href="#projects" class="inline-block px-8 py-3 bg-white text-gray-900 rounded-full font-medium hover:bg-opacity-90 transition-all transform hover:-translate-y-1">
+                <button onclick="scrollToSection('projects')" class="inline-block px-8 py-3 bg-white text-gray-900 rounded-full font-medium hover:bg-opacity-90 transition-all transform hover:-translate-y-1 cursor-pointer">
                     Ver Proyectos
-                </a>
+                </button>
             </div>
         </div>
     </section>
@@ -198,7 +197,7 @@ def generate_portfolio(prompt: str) -> str:
         <div class="container mx-auto px-6">
             <div class="flex flex-col md:flex-row items-center gap-16">
                 <div class="md:w-1/2" data-aos="fade-right">
-                    <img src="[FOTO]" alt="Perfil" class="w-80 h-80 rounded-2xl object-cover shadow-2xl"/>
+                    <img src="[FOTO]" alt="Perfil" class="w-80 h-80 rounded-2xl object-cover shadow-2xl mx-auto"/>
                 </div>
                 <div class="md:w-1/2" data-aos="fade-left">
                     <h2 class="text-4xl font-bold mb-6">Sobre mí</h2>
@@ -244,7 +243,7 @@ def generate_portfolio(prompt: str) -> str:
     <!-- Footer -->
     <footer class="bg-gray-900 text-white py-8">
         <div class="container mx-auto px-6 text-center">
-            <p class="text-gray-400">Creado con ❤️ usando <a href="https://github.com/tu-usuario/DevPortfolio-Builder" class="text-indigo-400 hover:text-indigo-300 transition-colors">DevPortfolio-Builder</a></p>
+            <p class="text-gray-400">Creado con ❤️ usando <a href="https://github.com/amsteradri/DevPortfolio-Builder" class="text-indigo-400 hover:text-indigo-300 transition-colors">DevPortfolio-Builder</a></p>
         </div>
     </footer>
 
@@ -410,15 +409,32 @@ def generate_portfolio(prompt: str) -> str:
             if not response_text.endswith("}"):
                 response_text += "}"
             
-            # Usamos los datos del prompt directamente
-            html = (base_html
-                .replace("[NOMBRE]", prompt_data.get('nombre', 'Portfolio'))
-                .replace("[PROFESION]", prompt_data.get('profesion', 'Desarrollador'))
-                .replace("[FOTO]", prompt_data.get('foto', 'https://via.placeholder.com/300'))
-                .replace("[DESCRIPCION]", prompt_data.get('descripcion', 'Descripción pendiente'))
-                .replace("[EMAIL]", prompt_data.get('email', 'contacto@email.com'))
-                .replace("[LINKEDIN]", prompt_data.get('linkedin', '#'))
-                .replace("[PROYECTOS]", generate_projects_html(projects)))
+            # Generar estilos dinámicos
+            dynamic_styles = generate_dynamic_styles(styles)
+            
+            # Insertar los estilos dinámicos antes del cierre de </style>
+            html = base_html.replace('</style>', f'{dynamic_styles}</style>')
+            
+            # Debug para ver los valores
+            print("Valores a reemplazar:")
+            print(f"Nombre: {prompt_data.get('nombre', 'Portfolio')}")
+            print(f"Profesión: {prompt_data.get('profesion', 'Desarrollador')}")
+            print(f"Foto: {prompt_data.get('foto', 'https://via.placeholder.com/300')}")
+            print(f"Descripción: {prompt_data.get('descripcion', 'Descripción pendiente')}")
+            
+            # Reemplazar los placeholders
+            html = (html
+                .replace('[NOMBRE]', prompt_data.get('nombre', 'Portfolio'))
+                .replace('[PROFESION]', prompt_data.get('profesion', 'Desarrollador'))
+                .replace('[FOTO]', prompt_data.get('foto', 'https://via.placeholder.com/300'))
+                .replace('[DESCRIPCION]', prompt_data.get('descripcion', 'Descripción pendiente'))
+                .replace('[EMAIL]', prompt_data.get('email', 'contacto@email.com'))
+                .replace('[LINKEDIN]', prompt_data.get('linkedin', '#'))
+                .replace('[PROYECTOS]', generate_projects_html(projects)))
+            
+            # Aplicar colores a elementos específicos
+            html = html.replace('hover:text-indigo-500', 'hover:text-accent')
+            html = html.replace('text-indigo-400', 'text-accent')
             
             return html
             
@@ -464,23 +480,145 @@ def generate_portfolio(prompt: str) -> str:
 
 def generate_projects_html(projects):
     """Genera el HTML para las cards de proyectos"""
-    if not projects or len(projects) == 0:
-        return "<p class='text-center text-gray-500'>No hay proyectos disponibles</p>"
+    print(f"Generando HTML para {len(projects)} proyectos")  # Debug
     
-    projects_html = "<div class='grid grid-cols-1 md:grid-cols-2 gap-8'>"
-    for project in projects:
-        projects_html += f"""
-            <div class='bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2' data-aos='fade-up'>
-                <img src='{project["imagen"]}' alt='{project["nombre"]}' class='w-full h-64 object-cover'/>
-                <div class='p-8'>
-                    <h3 class='text-2xl font-bold mb-4'>{project["nombre"]}</h3>
-                    <p class='text-lg text-gray-600 dark:text-gray-300'>{project.get("descripcion", "Proyecto destacado")}</p>
+    try:
+        if not projects or len(projects) == 0:
+            print("No se encontraron proyectos")  # Debug
+            return "<p class='text-center text-gray-500'>No hay proyectos disponibles</p>"
+        
+        projects_html = "<div class='grid grid-cols-1 md:grid-cols-2 gap-12'>"
+        
+        for project in projects:
+            print(f"Procesando proyecto para HTML: {project}")  # Debug
+            
+            # Validación de datos del proyecto
+            if not all(key in project for key in ['nombre', 'imagen', 'descripcion']):
+                print(f"Proyecto inválido: {project}")  # Debug
+                continue
+                
+            projects_html += f"""
+                <div class='project-card rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-500 transform' data-aos='fade-up'>
+                    <img src='{project["imagen"]}' alt='{project["nombre"]}' class='w-full h-72 object-cover'/>
+                    <div class='p-8'>
+                        <h3 class='text-2xl font-bold mb-4 text-accent'>{project["nombre"]}</h3>
+                        <p class='text-lg'>{project.get("descripcion", "Proyecto destacado")}</p>
+                    </div>
                 </div>
-            </div>
-        """
-    projects_html += "</div>"
-    return projects_html
+            """
+            
+        projects_html += "</div>"
+        print("HTML de proyectos generado exitosamente")  # Debug
+        return projects_html
+        
+    except Exception as e:
+        print(f"Error generando HTML de proyectos: {str(e)}")  # Debug
+        return "<p class='text-center text-gray-500'>Error al cargar los proyectos</p>"
+        
 
+def generate_dynamic_styles(styles):
+    """Genera los estilos CSS dinámicos basados en las preferencias del usuario"""
+    return f"""
+        :root {{
+            --color-primary: {styles['primary_color']};
+            --color-secondary: {styles['secondary_color']};
+            --color-text: {styles['text_color']};
+            --color-bg: {styles['bg_color']};
+            --color-accent: {styles['accent_color']};
+        }}
+
+        /* Estilos globales */
+        body {{
+            background-color: var(--color-bg);
+            color: var(--color-text);
+        }}
+
+        /* Aumentar altura de secciones */
+        .section-height {{
+            min-height: 120vh !important;
+            padding: 10rem 0 !important;
+        }}
+
+        /* Estilos de secciones */
+        .gradient-bg {{ 
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%) !important;
+        }}
+
+        #about {{
+            background: linear-gradient(to bottom right, var(--color-bg), var(--color-primary) 150%) !important;
+        }}
+
+        #projects {{
+            background: linear-gradient(to bottom left, var(--color-bg), var(--color-secondary) 150%) !important;
+        }}
+
+        #contact {{
+            background: linear-gradient(to top right, var(--color-bg), var(--color-primary) 150%) !important;
+        }}
+
+        /* Estilos de navegación */
+        .nav-link {{
+            color: var(--color-bg) !important;
+        }}
+
+        .nav-link:hover::after {{
+            background-color: var(--color-accent) !important;
+        }}
+
+        /* Estilos de botones y elementos interactivos */
+        .btn-primary {{
+            background-color: var(--color-primary) !important;
+            color: var(--color-bg) !important;
+        }}
+
+        .btn-accent {{
+            background-color: var(--color-accent) !important;
+            color: var(--color-bg) !important;
+        }}
+
+        /* Estilos de texto y elementos decorativos */
+        .text-accent {{
+            color: var(--color-accent) !important;
+        }}
+
+        .hover\:text-accent:hover {{
+            color: var(--color-accent) !important;
+        }}
+
+        /* Estilos de tarjetas de proyectos */
+        .project-card {{
+            background: linear-gradient(135deg, var(--color-bg), rgba(var(--color-primary), 0.1)) !important;
+            border: 1px solid var(--color-accent) !important;
+        }}
+
+        .project-card:hover {{
+            transform: translateY(-10px);
+            box-shadow: 0 20px 25px -5px rgba(var(--color-primary), 0.1), 
+                       0 10px 10px -5px rgba(var(--color-secondary), 0.04) !important;
+        }}
+
+        /* Dark mode adjustments */
+        .dark body {{
+            background: linear-gradient(to bottom, #1a1a1a, #2d3748) !important;
+            color: var(--color-bg) !important;
+        }}
+
+        .dark .glass {{
+            background: rgba(var(--color-primary), 0.1) !important;
+            backdrop-filter: blur(10px) !important;
+        }}
+
+        /* Enlaces y efectos hover */
+        a:hover {{
+            color: var(--color-accent) !important;
+        }}
+
+        /* Efectos de scroll */
+        [data-aos] {{
+            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
+            transition-duration: 600ms !important;
+        }}
+    """
 
 # TEST _PROMPT
 # Nombre: Ana García
