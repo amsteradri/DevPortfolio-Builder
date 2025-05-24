@@ -1,0 +1,19 @@
+Nombre: Luna García
+Profesión: Game Developer
+Foto: https://images.unsplash.com/photo-1573496359142-b8d87734a5a2
+Descripción: Desarrolladora de videojuegos con pasión por crear mundos interactivos. Especializada en Unity y Unreal Engine.
+Email: luna.games@dev.com
+LinkedIn: https://linkedin.com/in/lunagames
+
+# Estilos
+Color primario: #8B00FF
+Color secundario: #4B0082
+Color texto: #E6E6FA
+Color fondo: #1A1A2E
+Color acento: #00FF00
+
+# Proyectos
+- Space Adventure (https://images.unsplash.com/photo-1614732414444-096e5f1122d5): Juego de exploración espacial en VR.
+- Pixel Warriors (https://images.unsplash.com/photo-1550745165-9bc0b252726f): Juego de lucha retro multiplayer.
+- Forest Quest (https://images.unsplash.com/photo-1516541196182-6bdb0516ed27): Aventura de puzzles en un bosque mágico.
+- Cyber Race (https://images.unsplash.com/photo-1552820728-8b83bb6b773f): Juego de carreras futurista.

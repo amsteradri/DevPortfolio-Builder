@@ -1,0 +1,19 @@
+Nombre: Marco Rossi
+Profesión: Chef Ejecutivo
+Foto: https://images.unsplash.com/photo-1577219491135-ce391730fb2c
+Descripción: Chef especializado en fusión mediterránea-asiática. 15 años de experiencia en restaurantes de alta cocina.
+Email: marco.chef@cuisine.com
+LinkedIn: https://linkedin.com/in/marcorossi
+
+# Estilos
+Color primario: #FF6B35
+Color secundario: #F7C59F
+Color texto: #2B2B2B
+Color fondo: #FFFAF0
+Color acento: #004E89
+
+# Proyectos
+- Restaurante Fusión (https://images.unsplash.com/photo-1559339352-11d035aa65de): Director ejecutivo de "Sapore Fusion".
+- Cookbook Digital (https://images.unsplash.com/photo-1505935428862-770b6f24f629): Aplicación de recetas interactivas.
+- Food Festival (https://images.unsplash.com/photo-1414235077428-338989a2e8c0): Organizador del Festival Gastronómico Internacional.
+- Cooking Academy (https://images.unsplash.com/photo-1577106263724-2c8e03bfe9cf): Escuela de cocina profesional online.

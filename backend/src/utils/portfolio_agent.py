@@ -487,7 +487,8 @@ def generate_projects_html(projects):
             print("No se encontraron proyectos")  # Debug
             return "<p class='text-center text-gray-500'>No hay proyectos disponibles</p>"
         
-        projects_html = "<div class='grid grid-cols-1 md:grid-cols-2 gap-12'>"
+        # Cambiamos grid-cols-2 a grid-cols-4
+        projects_html = "<div class='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6'>"
         
         for project in projects:
             print(f"Procesando proyecto para HTML: {project}")  # Debug
@@ -497,12 +498,13 @@ def generate_projects_html(projects):
                 print(f"Proyecto inválido: {project}")  # Debug
                 continue
                 
+            # Ajustamos el tamaño de las cards para que quepan 4 en una fila
             projects_html += f"""
-                <div class='project-card rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-500 transform' data-aos='fade-up'>
-                    <img src='{project["imagen"]}' alt='{project["nombre"]}' class='w-full h-72 object-cover'/>
-                    <div class='p-8'>
-                        <h3 class='text-2xl font-bold mb-4 text-accent'>{project["nombre"]}</h3>
-                        <p class='text-lg'>{project.get("descripcion", "Proyecto destacado")}</p>
+                <div class='project-card rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2' data-aos='fade-up'>
+                    <img src='{project["imagen"]}' alt='{project["nombre"]}' class='w-full h-48 object-cover'/>
+                    <div class='p-4'>
+                        <h3 class='text-lg font-bold mb-2 text-accent'>{project["nombre"]}</h3>
+                        <p class='text-sm'>{project.get("descripcion", "Proyecto destacado")}</p>
                     </div>
                 </div>
             """
