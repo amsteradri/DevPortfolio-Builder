@@ -17,6 +17,18 @@ def generate_portfolio(prompt: str) -> str:
         current_section = None
         projects = []
         
+        # Añadimos soporte para estilos
+        styles = {
+            'primary_color': '#6366f1',
+            'secondary_color': '#3b82f6',
+            'text_color': '#1f2937',
+            'bg_color': '#ffffff',
+            'accent_color': '#4f46e5',
+            'font_heading': 'Poppins',
+            'font_body': 'Inter',
+            'hero_bg': 'https://images.unsplash.com/photo-1451187580459-43490279c0fa'
+        }
+
         for line in prompt.split('\n'):
             line = line.strip()
             if not line:
@@ -35,19 +47,51 @@ def generate_portfolio(prompt: str) -> str:
                     prompt_data['foto'] = value
                 elif key == 'descripción' or key == 'descripcion':
                     prompt_data['descripcion'] = value
+                elif key == 'email':
+                    prompt_data['email'] = value
+                elif key == 'linkedin':
+                    prompt_data['linkedin'] = value
                 elif key == 'proyectos':
                     current_section = 'proyectos'
+                # Añadimos el parsing de estilos
+                elif key == 'color primario':
+                    styles['primary_color'] = value
+                elif key == 'color secundario':
+                    styles['secondary_color'] = value
+                elif key == 'color texto':
+                    styles['text_color'] = value
+                elif key == 'color fondo':
+                    styles['bg_color'] = value
+                elif key == 'color acento':
+                    styles['accent_color'] = value
+                elif key == 'fuente títulos':
+                    styles['font_heading'] = value
+                elif key == 'fuente texto':
+                    styles['font_body'] = value
+                elif key == 'imagen fondo':
+                    styles['hero_bg'] = value
             elif line.startswith('-') and current_section == 'proyectos':
-                # Parseamos la línea del proyecto
-                project_line = line[1:].strip()
-                if '(' in project_line and ')' in project_line:
-                    name = project_line[:project_line.find('(')].strip()
-                    url = project_line[project_line.find('(')+1:project_line.find(')')].strip()
-                    projects.append({
-                        'nombre': name,
-                        'imagen': url,
-                        'descripcion': 'Proyecto destacado'
-                    })
+                try:
+                    # Parseamos la línea del proyecto
+                    project_line = line[1:].strip()
+                    if '(' in project_line and ')' in project_line:
+                        name = project_line[:project_line.find('(')].strip()
+                        url = project_line[project_line.find('(')+1:project_line.find(')')].strip()
+                        desc = ""
+                        
+                        # Extraer descripción si existe
+                        if ':' in project_line:
+                            desc = project_line[project_line.find(':')+1:].strip()
+                        
+                        project = {
+                            'nombre': name,
+                            'imagen': url,
+                            'descripcion': desc or "Proyecto destacado"
+                        }
+                        projects.append(project)
+                        print(f"Proyecto añadido: {project}")  # Debug
+                except Exception as e:
+                    print(f"Error procesando proyecto: {str(e)}")
 
         prompt_data['proyectos'] = projects
 
@@ -123,9 +167,10 @@ def generate_portfolio(prompt: str) -> str:
             <div class="flex items-center justify-between">
                 <h1 class="text-2xl font-bold text-white">[NOMBRE]</h1>
                 <div class="hidden md:flex items-center space-x-8">
-                    <a href="#home" class="nav-link">Inicio</a>
-                    <a href="#about" class="nav-link">Sobre mí</a>
-                    <a href="#projects" class="nav-link">Proyectos</a>
+                    <span class="nav-link" onclick="scrollToSection('home')">Inicio</span>
+                    <span class="nav-link" onclick="scrollToSection('about')">Sobre mí</span>
+                    <span class="nav-link" onclick="scrollToSection('projects')">Proyectos</span>
+                    <span class="nav-link" onclick="scrollToSection('contact')">Contacto</span>
                     <button id="darkMode" class="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors">
                         🌙
                     </button>
@@ -173,6 +218,36 @@ def generate_portfolio(prompt: str) -> str:
         </div>
     </section>
 
+    <!-- Contact -->
+    <section id="contact" class="section-height bg-white dark:bg-gray-800">
+        <div class="container mx-auto px-6">
+            <h2 class="text-4xl font-bold text-center mb-16">Contacto</h2>
+            <div class="max-w-3xl mx-auto">
+                <div class="flex flex-col items-center gap-8" data-aos="fade-up">
+                    <div class="flex items-center gap-4">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                        </svg>
+                        <a href="mailto:[EMAIL]" class="text-xl hover:text-indigo-500 transition-colors">[EMAIL]</a>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                        </svg>
+                        <a href="[LINKEDIN]" target="_blank" class="text-xl hover:text-indigo-500 transition-colors">LinkedIn</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-8">
+        <div class="container mx-auto px-6 text-center">
+            <p class="text-gray-400">Creado con ❤️ usando <a href="https://github.com/tu-usuario/DevPortfolio-Builder" class="text-indigo-400 hover:text-indigo-300 transition-colors">DevPortfolio-Builder</a></p>
+        </div>
+    </footer>
+
     <script>
         AOS.init({
             duration: 1000,
@@ -180,19 +255,97 @@ def generate_portfolio(prompt: str) -> str:
             offset: 100
         });
 
-        document.getElementById('darkMode').addEventListener('click', () => {
-            document.documentElement.classList.toggle('dark');
-        });
+        // Fix para el dark mode
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark')
+        } else {
+            document.documentElement.classList.remove('dark')
+        }
 
-        // Smooth scroll
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                document.querySelector(this.getAttribute('href')).scrollIntoView({
-                    behavior: 'smooth'
+        document.getElementById('darkMode').addEventListener('click', () => {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark')
+                localStorage.theme = 'light'
+            } else {
+                document.documentElement.classList.add('dark')
+                localStorage.theme = 'dark'
+            }
+        });
+        
+        // Navegación suave mejorada
+        document.addEventListener('DOMContentLoaded', function() {
+            // Prevenir navegación por defecto y manejar scroll suave
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    
+                    const targetId = this.getAttribute('href').substring(1);
+                    const targetElement = document.getElementById(targetId);
+                    
+                    if (targetElement) {
+                        const offset = 80; // Altura del navbar
+                        const elementPosition = targetElement.getBoundingClientRect().top;
+                        const offsetPosition = elementPosition + window.pageYOffset - offset;
+
+                        window.scrollTo({
+                            top: offsetPosition,
+                            behavior: 'smooth'
+                        });
+
+                        // Actualizar URL sin recargar la página
+                        history.pushState(null, '', `#${targetId}`);
+                    }
                 });
             });
+
+            // Manejar navegación inicial si hay hash en la URL
+            if (window.location.hash) {
+                const targetElement = document.querySelector(window.location.hash);
+                if (targetElement) {
+                    setTimeout(() => {
+                        const offset = 80;
+                        const elementPosition = targetElement.getBoundingClientRect().top;
+                        const offsetPosition = elementPosition + window.pageYOffset - offset;
+                        
+                        window.scrollTo({
+                            top: offsetPosition,
+                            behavior: 'smooth'
+                        });
+                    }, 100);
+                }
+            }
         });
+
+        function scrollToSection(sectionId) {
+            try {
+                const targetElement = document.getElementById(sectionId);
+                if (targetElement) {
+                    const navbarHeight = 80;
+                    const elementPosition = targetElement.getBoundingClientRect().top;
+                    const offsetPosition = elementPosition + window.pageYOffset - navbarHeight;
+
+                    window.scrollTo({
+                        top: offsetPosition,
+                        behavior: 'smooth'
+                    });
+
+                    // Actualizar clases activas
+                    updateActiveNavLink(sectionId);
+                }
+            } catch (error) {
+                console.error('Error en scrollToSection:', error);
+            }
+        }
+
+        function updateActiveNavLink(activeSection) {
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+                if (link.textContent.toLowerCase().includes(activeSection)) {
+                    link.classList.add('active');
+                }
+            });
+        }
     </script>
 </body>
 </html>"""
@@ -248,51 +401,48 @@ def generate_portfolio(prompt: str) -> str:
         )
         
         try:
+            # Limpiamos la respuesta de la IA
+            response_text = output["choices"][0]["text"].strip()
+            # Eliminamos marcadores de código y otros elementos no JSON
+            response_text = response_text.replace("```python", "").replace("```", "")
+            response_text = response_text.replace("portfolio = ", "")
             # Aseguramos que tenemos un JSON válido
-            response_text = output["choices"][0]["text"].strip() + "}"
-            content = eval(response_text)
+            if not response_text.endswith("}"):
+                response_text += "}"
             
-            # Validamos que tenemos todos los campos necesarios
-            required_fields = ["nombre", "profesion", "foto", "descripcion", "proyectos"]
-            for field in required_fields:
-                if field not in content:
-                    raise ValueError(f"Falta el campo {field} en la respuesta")
-            
-            # Aseguramos que los proyectos tienen el formato HTML correcto
-            if "<div class='grid grid-cols-1 md:grid-cols-2 gap-8'>" not in content["proyectos"]:
-                raise ValueError("Formato de proyectos incorrecto")
-            
-            # Reemplazamos los placeholders
+            # Usamos los datos del prompt directamente
             html = (base_html
-                .replace("[NOMBRE]", content["nombre"])
-                .replace("[PROFESION]", content["profesion"])
-                .replace("[FOTO]", content["foto"])
-                .replace("[DESCRIPCION]", content["descripcion"])
-                .replace("[PROYECTOS]", content["proyectos"]))
-            
-            return html
-            
-        except Exception as e:
-            print(f"Error procesando respuesta: {str(e)}")
-            print(f"Respuesta recibida: {output['choices'][0]['text']}")
-            
-            # Template por defecto usando los datos parseados
-            default_projects = """
-                <div class='bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6'>
-                    <p class='text-red-600'>Error generando proyectos</p>
-                </div>
-            """
-            
-            return (base_html
                 .replace("[NOMBRE]", prompt_data.get('nombre', 'Portfolio'))
                 .replace("[PROFESION]", prompt_data.get('profesion', 'Desarrollador'))
                 .replace("[FOTO]", prompt_data.get('foto', 'https://via.placeholder.com/300'))
                 .replace("[DESCRIPCION]", prompt_data.get('descripcion', 'Descripción pendiente'))
-                .replace("[PROYECTOS]", default_projects))
+                .replace("[EMAIL]", prompt_data.get('email', 'contacto@email.com'))
+                .replace("[LINKEDIN]", prompt_data.get('linkedin', '#'))
+                .replace("[PROYECTOS]", generate_projects_html(projects)))
+            
+            return html
+            
+        except Exception as inner_error:
+            print(f"Error procesando respuesta: {str(inner_error)}")
+            print(f"Respuesta recibida: {output['choices'][0]['text']}")
+            
+            # Usamos los datos del prompt directamente
+            projects_html = generate_projects_html(projects)
+    
+            html = (base_html
+                .replace("[NOMBRE]", prompt_data.get('nombre', 'Portfolio'))
+                .replace("[PROFESION]", prompt_data.get('profesion', 'Desarrollador'))
+                .replace("[FOTO]", prompt_data.get('foto', 'https://via.placeholder.com/300'))
+                .replace("[DESCRIPCION]", prompt_data.get('descripcion', 'Descripción pendiente'))
+                .replace("[EMAIL]", prompt_data.get('email', 'contacto@email.com'))
+                .replace("[LINKEDIN]", prompt_data.get('linkedin', '#'))
+                .replace("[PROYECTOS]", projects_html))
+    
+            return html
 
-    except Exception as e:
-        print(f"Error generando portfolio: {str(e)}")
-        return """
+    except Exception as outer_error:
+        print(f"Error generando portfolio: {str(outer_error)}")
+        return f"""
         <!DOCTYPE html>
         <html lang="es">
         <head>
@@ -304,12 +454,32 @@ def generate_portfolio(prompt: str) -> str:
             <div class="container mx-auto px-4 py-8">
                 <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
                     <p class="font-bold">Error:</p>
-                    <p>{str(e)}</p>
+                    <p>{str(outer_error)}</p>
                 </div>
             </div>
         </body>
         </html>
         """
+
+
+def generate_projects_html(projects):
+    """Genera el HTML para las cards de proyectos"""
+    if not projects or len(projects) == 0:
+        return "<p class='text-center text-gray-500'>No hay proyectos disponibles</p>"
+    
+    projects_html = "<div class='grid grid-cols-1 md:grid-cols-2 gap-8'>"
+    for project in projects:
+        projects_html += f"""
+            <div class='bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2' data-aos='fade-up'>
+                <img src='{project["imagen"]}' alt='{project["nombre"]}' class='w-full h-64 object-cover'/>
+                <div class='p-8'>
+                    <h3 class='text-2xl font-bold mb-4'>{project["nombre"]}</h3>
+                    <p class='text-lg text-gray-600 dark:text-gray-300'>{project.get("descripcion", "Proyecto destacado")}</p>
+                </div>
+            </div>
+        """
+    projects_html += "</div>"
+    return projects_html
 
 
 # TEST _PROMPT
