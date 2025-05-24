@@ -1,3 +1,6 @@
 flask
 flask-cors
 llama-cpp-python
+flask-debug
+python-dotenv
+watchdog

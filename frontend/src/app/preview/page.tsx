@@ -31,9 +31,9 @@ export default function Preview() {
       }
 
       setHtml(data.html);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setError(err instanceof Error ? err.message : String(err));
+      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -68,6 +68,7 @@ export default function Preview() {
             srcDoc={html}
             className="w-full h-[600px]"
             sandbox="allow-scripts"
+            title="Portfolio Preview"
           />
         </div>
       )}

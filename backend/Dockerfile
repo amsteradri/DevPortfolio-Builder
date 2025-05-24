@@ -22,11 +22,14 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copiar el resto del código
 COPY . .
 
-# Variable de entorno para Python path
+# Variables de entorno para desarrollo
 ENV PYTHONPATH=/app
+ENV FLASK_ENV=development
+ENV FLASK_DEBUG=1
+ENV PYTHONUNBUFFERED=1
 
 # Expone el puerto de Flask
 EXPOSE 5000
 
-# Comando para correr la app
-CMD ["python", "src/main.py"]
+# Usar flask run en lugar de python directamente
+CMD ["python", "-m", "flask", "--app", "src/main.py", "run", "--host=0.0.0.0", "--port=5000", "--debug"]
