@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   GripHorizontal, Code, Trash2, Eye, ChevronDown,
-  ArrowLeft, ArrowRight, Minus, Maximize2, X 
+  ArrowLeft, ArrowRight, Minus, Maximize2, X, Upload 
 } from 'lucide-react';
 import {
   ComponentType,
@@ -156,7 +156,7 @@ const SortableBlock: React.FC<{
       </div>
       
       {/* Componente renderizado con propiedades */}
-      <Component properties={properties} />
+      <Component properties={properties} preview={false} />
     </div>
   );
 };
@@ -295,116 +295,310 @@ const PropertiesPanel: React.FC<{
     </div>
   );
 
-  return (
-    <aside className="w-80 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 overflow-y-auto">
-      <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
-            Propiedades
-          </h3>
-          <button
-            onClick={onClose}
-            className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
-          >
-            <X size={16} />
-          </button>
-        </div>
-        <div className="mt-2 bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
-          <h4 className="font-medium text-gray-800 dark:text-white text-sm">
-            {componentData?.name}
-          </h4>
-          <p className="text-xs text-gray-600 dark:text-gray-400">
-            {componentData?.variants[parseInt(variantIndex)]?.name}
-          </p>
+  // Función para manejar la subida de archivos de imagen
+  const handleImageUpload = (key: string, file: File) => {
+    if (file && file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const imageUrl = e.target?.result as string;
+        updateProperty(key, imageUrl);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Función para renderizar input de imagen con opción de subir archivo
+  const renderImageInput = (label: string, key: string, placeholder: string = "") => (
+    <div className="space-y-3">
+      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+        {label}
+      </label>
+      
+      {/* Input de URL */}
+      <div className="space-y-2">
+        <input
+          type="url"
+          value={currentProperties[key] || ''}
+          onChange={(e) => updateProperty(key, e.target.value)}
+          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          placeholder={placeholder}
+        />
+        <div className="text-xs text-gray-500 dark:text-gray-400">
+          Pega una URL de imagen o sube un archivo
         </div>
       </div>
 
-      <div className="p-4">
-        {/* Contenido */}
-        {renderPropertySection("📝 Contenido", (
-          <>
-            {renderTextInput("Título principal", "title", "Ingresa el título...")}
-            {(componentType === 'hero' || componentType === 'about') && 
-              renderTextInput("Subtítulo", "subtitle", "Ingresa el subtítulo...")
+      {/* Input de archivo */}
+      <div className="relative">
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) {
+              handleImageUpload(key, file);
             }
-            {renderTextarea("Descripción", "description", "Describe el contenido...")}
-            {componentType === 'hero' && (
-              <>
-                {renderTextInput("Texto del botón", "buttonText", "Ver más")}
-                {renderCheckbox("Mostrar botón", "showButton")}
-                {renderCheckbox("Mostrar redes sociales", "showSocial")}
-              </>
-            )}
-            {componentType === 'about' && renderCheckbox("Mostrar icono", "showIcon")}
-          </>
-        ))}
-
-        {/* Colores */}
-        {renderPropertySection("🎨 Colores", (
-          <>
-            {renderColorInput("Color de fondo", "backgroundColor", "#ffffff")}
-            {renderColorInput("Color de texto", "textColor", "#000000")}
-            {renderColorInput("Color primario", "primaryColor", "#3b82f6")}
-            {componentType === 'hero' && renderColorInput("Color secundario", "secondaryColor", "#8b5cf6")}
-            {componentType === 'about' && renderColorInput("Color del icono", "iconColor", "#ffffff")}
-          </>
-        ))}
-
-        {/* Tipografía */}
-        {renderPropertySection("✏️ Tipografía", (
-          <>
-            {renderSelectInput("Tamaño de fuente", "fontSize", [
-              { value: "text-sm", label: "Pequeño" },
-              { value: "text-base", label: "Normal" },
-              { value: "text-lg", label: "Grande" },
-              { value: "text-xl", label: "Extra Grande" },
-              { value: "text-2xl", label: "2XL" },
-              { value: "text-3xl", label: "3XL" },
-              { value: "text-4xl", label: "4XL" },
-              { value: "text-4xl md:text-6xl", label: "Hero Grande" },
-              { value: "text-5xl md:text-7xl", label: "Hero Extra Grande" }
-            ], "text-base")}
-            
-            {renderSelectInput("Alineación de texto", "textAlign", [
-              { value: "text-left", label: "Izquierda" },
-              { value: "text-center", label: "Centro" },
-              { value: "text-right", label: "Derecha" }
-            ], "text-left")}
-          </>
-        ))}
-
-        {/* Espaciado y dimensiones */}
-        {renderPropertySection("📐 Espaciado", (
-          <>
-            {renderSelectInput("Espaciado interno", "padding", [
-              { value: "p-2", label: "Muy pequeño" },
-              { value: "p-4", label: "Pequeño" },
-              { value: "p-6", label: "Normal" },
-              { value: "p-8", label: "Grande" },
-              { value: "p-12", label: "Extra grande" }
-            ], "p-6")}
-            
-            {renderSelectInput("Bordes redondeados", "borderRadius", [
-              { value: "rounded-none", label: "Sin redondeo" },
-              { value: "rounded-sm", label: "Pequeño" },
-              { value: "rounded", label: "Normal" },
-              { value: "rounded-lg", label: "Grande" },
-              { value: "rounded-xl", label: "Extra grande" },
-              { value: "rounded-2xl", label: "2XL" },
-              { value: "rounded-full", label: "Completo" }
-            ], "rounded-none")}
-          </>
-        ))}
-
-        {/* Fondo (solo para Hero) */}
-        {componentType === 'hero' && renderPropertySection("🖼️ Fondo", (
-          <>
-            {renderTextInput("URL de imagen de fondo", "backgroundImage", "https://example.com/image.jpg")}
-            {renderSlider("Opacidad del overlay", "overlayOpacity", 0, 100, 10, 70, "%")}
-          </>
-        ))}
+          }}
+          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+        />
+        <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center hover:border-gray-400 dark:hover:border-gray-500 transition-colores">
+          <Upload size={20} className="mx-auto mb-2 text-gray-400" />
+          <span className="text-sm text-gray-600 dark:text-gray-400">
+            Haz clic para subir una imagen
+          </span>
+        </div>
       </div>
-    </aside>
+
+      {/* Vista previa de la imagen */}
+      {currentProperties[key] && (
+        <div className="mt-3">
+          <div className="text-sm text-gray-700 dark:text-gray-300 mb-2">Vista previa:</div>
+          <div className="relative inline-block">
+            <img 
+              src={currentProperties[key]} 
+              alt="Preview" 
+              className="w-20 h-20 rounded-lg object-cover border-2 border-gray-300 dark:border-gray-600"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+              }}
+            />
+            <button
+              onClick={() => updateProperty(key, '')}
+              className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
+  // Retornar SOLO el contenido, sin containers adicionales
+  return (
+    <>
+      {/* Contenido */}
+      {renderPropertySection("📝 Contenido", (
+        <>
+          {renderTextInput("Título principal", "title", "Ingresa el título...")}
+          {(componentType === 'hero' || componentType === 'about') && 
+            renderTextInput("Subtítulo", "subtitle", "Ingresa el subtítulo...")
+          }
+          {renderTextarea("Descripción", "description", "Describe el contenido...")}
+          {componentType === 'hero' && (
+            <>
+              {renderTextInput("Texto del botón", "buttonText", "Ver más")}
+              {renderCheckbox("Mostrar botón", "showButton")}
+              {renderCheckbox("Mostrar redes sociales", "showSocial")}
+            </>
+          )}
+          {componentType === 'about' && renderCheckbox("Mostrar icono", "showIcon")}
+        </>
+      ))}
+
+      {/* Colores */}
+      {renderPropertySection("🎨 Colores", (
+        <>
+          {renderColorInput("Color de fondo", "backgroundColor", "#ffffff")}
+          {renderColorInput("Color de texto", "textColor", "#000000")}
+          {renderColorInput("Color primario", "primaryColor", "#3b82f6")}
+          {componentType === 'hero' && renderColorInput("Color secundario", "secondaryColor", "#8b5cf6")}
+          {componentType === 'about' && renderColorInput("Color del icono", "iconColor", "#ffffff")}
+        </>
+      ))}
+
+      {/* Tipografía */}
+      {renderPropertySection("✏️ Tipografía", (
+        <>
+          {renderSelectInput("Tamaño de fuente", "fontSize", [
+            { value: "text-sm", label: "Pequeño" },
+            { value: "text-base", label: "Normal" },
+            { value: "text-lg", label: "Grande" },
+            { value: "text-xl", label: "Extra Grande" },
+            { value: "text-2xl", label: "2XL" },
+            { value: "text-3xl", label: "3XL" },
+            { value: "text-4xl", label: "4XL" },
+            { value: "text-4xl md:text-6xl", label: "Hero Grande" },
+            { value: "text-5xl md:text-7xl", label: "Hero Extra Grande" }
+          ], "text-base")}
+          
+          {renderSelectInput("Alineación de texto", "textAlign", [
+            { value: "text-left", label: "Izquierda" },
+            { value: "text-center", label: "Centro" },
+            { value: "text-right", label: "Derecha" }
+          ], "text-left")}
+        </>
+      ))}
+
+      {/* Espaciado y dimensiones */}
+      {renderPropertySection("📐 Espaciado", (
+        <>
+          {renderSelectInput("Espaciado interno", "padding", [
+            { value: "p-2", label: "Muy pequeño" },
+            { value: "p-4", label: "Pequeño" },
+            { value: "p-6", label: "Normal" },
+            { value: "p-8", label: "Grande" },
+            { value: "p-12", label: "Extra grande" }
+          ], "p-6")}
+          
+          {renderSelectInput("Bordes redondeados", "borderRadius", [
+            { value: "rounded-none", label: "Sin redondeo" },
+            { value: "rounded-sm", label: "Pequeño" },
+            { value: "rounded", label: "Normal" },
+            { value: "rounded-lg", label: "Grande" },
+            { value: "rounded-xl", label: "Extra grande" },
+            { value: "rounded-2xl", label: "2XL" },
+            { value: "rounded-full", label: "Completo" }
+          ], "rounded-none")}
+        </>
+      ))}
+
+      {/* Contenido del Hero */}
+      {(componentType === 'hero') && renderPropertySection("📝 Contenido", (
+        <>
+          {renderTextInput("Título Principal", "title", "Tu nombre o título principal")}
+          {renderTextInput("Subtítulo", "subtitle", "Tu rol o especialidad")}
+          {renderTextInput("Descripción", "description", "Breve descripción sobre ti")}
+          {renderTextInput("Texto del Botón", "buttonText", "Ver Proyectos")}
+        </>
+      ))}
+
+      {/* Imágenes del Hero - SECCIÓN ÚNICA Y COMPLETA */}
+      {(componentType === 'hero') && renderPropertySection("🖼️ Imágenes", (
+        <>
+          {/* Imagen de Perfil */}
+          <div className="space-y-3">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Imagen de Perfil
+            </label>
+            <div className="space-y-2">
+              <input
+                type="url"
+                value={currentProperties.profileImage || ''}
+                onChange={(e) => updateProperty('profileImage', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                placeholder="https://ejemplo.com/tu-foto.jpg"
+              />
+              <div className="relative">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onload = (e) => {
+                        const imageUrl = e.target?.result as string;
+                        updateProperty('profileImage', imageUrl);
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                />
+                <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-3 text-center hover:border-gray-400 dark:hover:border-gray-500 transition-colores">
+                  <Upload size={16} className="mx-auto mb-1 text-gray-400" />
+                  <span className="text-xs text-gray-600 dark:text-gray-400">
+                    Subir foto de perfil
+                  </span>
+                </div>
+              </div>
+            </div>
+            {currentProperties.profileImage && (
+              <div className="mt-2">
+                <img 
+                  src={currentProperties.profileImage} 
+                  alt="Preview perfil" 
+                  className="w-16 h-16 object-cover rounded-full border"
+                  onError={(e) => e.currentTarget.style.display = 'none'}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Imagen de Fondo */}
+          <div className="space-y-3">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Imagen de Fondo
+            </label>
+            <div className="space-y-2">
+              <input
+                type="url"
+                value={currentProperties.backgroundImage || ''}
+                onChange={(e) => updateProperty('backgroundImage', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                placeholder="https://ejemplo.com/fondo.jpg"
+              />
+              <div className="relative">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onload = (e) => {
+                        const imageUrl = e.target?.result as string;
+                        updateProperty('backgroundImage', imageUrl);
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                />
+                <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-3 text-center hover:border-gray-400 dark:hover:border-gray-500 transition-colores">
+                  <Upload size={16} className="mx-auto mb-1 text-gray-400" />
+                  <span className="text-xs text-gray-600 dark:text-gray-400">
+                    Subir imagen de fondo
+                  </span>
+                </div>
+              </div>
+            </div>
+            {currentProperties.backgroundImage && (
+              <div className="mt-2">
+                <img 
+                  src={currentProperties.backgroundImage} 
+                  alt="Preview fondo" 
+                  className="w-full h-20 object-cover rounded border"
+                  onError={(e) => e.currentTarget.style.display = 'none'}
+                />
+              </div>
+            )}
+          </div>
+          
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+            <div className="text-sm text-blue-800 dark:text-blue-200">
+              <p className="font-medium mb-1">💡 Consejos:</p>
+              <ul className="text-xs space-y-1">
+                <li>• Imagen de perfil: Fotos cuadradas (400x400px)</li>
+                <li>• Imagen de fondo: Horizontales (1920x1080px)</li>
+                <li>• Formatos: JPG, PNG, WebP</li>
+                <li>• Las imágenes de fondo añaden overlay automático</li>
+              </ul>
+            </div>
+          </div>
+        </>
+      ))}
+
+      {/* Enlaces Sociales del Hero */}
+      {(componentType === 'hero') && renderPropertySection("🔗 Enlaces Sociales", (
+        <>
+          {renderTextInput("GitHub", "githubLink", "https://github.com/tu-usuario")}
+          {renderTextInput("LinkedIn", "linkedinLink", "https://linkedin.com/in/tu-perfil")}
+          {renderTextInput("Twitter", "twitterLink", "https://twitter.com/tu-usuario")}
+          {renderTextInput("Email", "emailLink", "mailto:tu@email.com")}
+          {renderTextInput("Teléfono", "phoneLink", "tel:+34123456789")}
+        </>
+      ))}
+
+      {/* Opciones de Visualización del Hero */}
+      {(componentType === 'hero') && renderPropertySection("👁️ Mostrar/Ocultar", (
+        <>
+          {renderCheckbox("Mostrar botón principal", "showButton")}
+          {renderCheckbox("Mostrar redes sociales", "showSocial")}
+        </>
+      ))}
+    </>
   );
 };
 
@@ -588,13 +782,15 @@ export default function VisualWebEditor() {
 
       {/* Editor principal */}
       {!isOpen && (
-        <div className="flex flex-1 overflow-hidden">
-          {/* Sidebar de componentes */}
+        <div className="flex h-screen"> {/* Contenedor principal con altura de pantalla completa */}
+          
+          {/* COLUMNA 1: Sidebar de componentes */}
           <aside 
             style={{ width: sidebarWidth }}
-            className="flex-shrink-0 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 p-6 overflow-y-auto"
+            className="flex-shrink-0 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 h-screen flex flex-col"
           >
-            <div className="sticky top-0 bg-white dark:bg-gray-800 pb-4 border-b border-gray-200 dark:border-gray-700 mb-6">
+            {/* Header fijo de componentes */}
+            <div className="flex-shrink-0 p-6 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
               <h2 className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
                 <Code size={20} className="text-blue-600" />
                 Componentes
@@ -604,28 +800,31 @@ export default function VisualWebEditor() {
               </p>
             </div>
             
-            <div className="space-y-4">
-              {(Object.entries(COMPONENTS_MAP) as [ComponentType, ComponentData][]).map(([type, data]) => (
-                <ComponentAccordion
-                  key={type}
-                  type={type}
-                  data={data}
-                  onDragStart={handleDragStart}
-                />
-              ))}
+            {/* Área scrolleable SOLO de componentes */}
+            <div className="flex-1 overflow-y-auto overflow-x-hidden">
+              <div className="p-6 space-y-4">
+                {(Object.entries(COMPONENTS_MAP) as [ComponentType, ComponentData][]).map(([type, data]) => (
+                  <ComponentAccordion
+                    key={type}
+                    type={type}
+                    data={data}
+                    onDragStart={handleDragStart}
+                  />
+                ))}
+              </div>
             </div>
           </aside>
 
           {/* Divisor arrastrable */}
           <div
             onMouseDown={handleMouseDown}
-            className="w-1 cursor-col-resize bg-gray-200 dark:bg-gray-700 hover:bg-blue-500 dark:hover:bg-blue-600 transition-colors"
+            className="w-1 cursor-col-resize bg-gray-200 dark:bg-gray-700 hover:bg-blue-500 dark:hover:bg-blue-600 transition-colores flex-shrink-0"
           />
 
-          {/* Área central del editor */}
-          <section className="flex-1 flex flex-col">
-            {/* Header del proyecto */}
-            <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-6">
+          {/* COLUMNA 2: Área central del editor */}
+          <section className="flex-1 h-screen flex flex-col">
+            {/* Header del proyecto - FIJO */}
+            <header className="flex-shrink-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-6">
               <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
                 {projectName}
               </h1>
@@ -634,21 +833,21 @@ export default function VisualWebEditor() {
               </p>
             </header>
 
-            {/* Canvas del editor */}
-            <div className="flex flex-1">
-              <div 
-                className="flex-1 p-8 overflow-y-auto bg-gray-100 dark:bg-gray-900"
-                onDragOver={handleDragOver}
-                onDrop={handleDrop}
-                onClick={handleCanvasClick}
-              >
-                {/* Controles de zoom */}
-                <div className="fixed bottom-6 right-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-2 flex items-center gap-2">
+            {/* Canvas del editor con scroll INDEPENDIENTE */}
+            <div 
+              className="flex-1 overflow-y-auto overflow-x-hidden bg-gray-100 dark:bg-gray-900"
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+              onClick={handleCanvasClick}
+            >
+              <div className="p-8">
+                {/* Controles de zoom - posición fija */}
+                <div className="fixed bottom-6 right-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-2 flex items-center gap-2 z-40">
                   <button
                     onClick={() => handleZoomChange(zoom - 25)}
                     className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
                   >
-                    -
+                    <Minus size={16} />
                   </button>
                   <span className="text-sm font-medium text-gray-600 dark:text-gray-300 min-w-[4rem] text-center">
                     {zoom}%
@@ -661,99 +860,126 @@ export default function VisualWebEditor() {
                   </button>
                 </div>
 
-                {/* Lienzo con tamaño real */}
-                <div className="relative min-h-[calc(100vh-8rem)]">
-                  {/* Barra de navegador simulada */}
-                  <div className="bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 h-10 rounded-t-lg flex items-center justify-between px-4">
-                    {/* Botones de navegación */}
-                    <div className="flex items-center gap-2">
-                      <button className="p-1.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400">
-                        <ArrowLeft size={16} />
-                      </button>
-                      <button className="p-1.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400">
-                        <ArrowRight size={16} />
-                      </button>
-                    </div>
-                    
-                    {/* URL simulada */}
-                    <div className="flex-1 mx-4">
-                      <div className="bg-white dark:bg-gray-700 rounded-md px-3 py-1.5 text-xs text-gray-500 dark:text-gray-400 flex items-center">
-                        <Code size={12} className="mr-2" />
-                        <span className="truncate">devportfolio.app/{projectName.toLowerCase().replace(/\s+/g, '-')}</span>
-                      </div>
-                    </div>
-                    
-                    {/* Botones de ventana */}
-                    <div className="flex items-center gap-2">
-                      <button className="p-1.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400">
-                        <Minus size={16} />
-                      </button>
-                      <button className="p-1.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400">
-                        <Maximize2 size={16} />
-                      </button>
-                      <button className="p-1.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-red-500 hover:text-red-600">
-                        <X size={16} />
-                      </button>
+                {/* Simulador de navegador */}
+                <div className="bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 h-10 rounded-t-lg flex items-center justify-between px-4 sticky top-0 z-10">
+                  <div className="flex items-center gap-2">
+                    <button className="p-1.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400">
+                      <ArrowLeft size={16} />
+                    </button>
+                    <button className="p-1.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400">
+                      <ArrowRight size={16} />
+                    </button>
+                  </div>
+                  
+                  <div className="flex-1 mx-4">
+                    <div className="bg-white dark:bg-gray-700 rounded-md px-3 py-1.5 text-xs text-gray-500 dark:text-gray-400 flex items-center">
+                      <Code size={12} className="mr-2" />
+                      <span className="truncate">devportfolio.app/{projectName.toLowerCase().replace(/\s+/g, '-')}</span>
                     </div>
                   </div>
-
-                  <div 
-                    style={{
-                      transform: `scale(${zoom / 100})`,
-                      transformOrigin: 'top center',
-                      width: '100%',
-                      maxWidth: isPropertiesPanelOpen ? '900px' : '1200px', // Reducir ancho cuando el panel está abierto
-                      margin: '0 auto',
-                      minHeight: '100vh',
-                      background: 'white',
-                      boxShadow: '0 0 20px rgba(0,0,0,0.1)',
-                    }}
-                    className="transition-all duration-200"
-                  >
-                    {blocks.length === 0 ? (
-                      <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-12 text-center">
-                        <Code size={48} className="text-gray-400 mx-auto mb-4" />
-                        <h3 className="text-xl font-semibold text-gray-600 dark:text-gray-400 mb-2">
-                          Tu lienzo está vacío
-                        </h3>
-                        <p className="text-gray-500 dark:text-gray-500">
-                          Arrastra componentes desde el panel lateral para comenzar a diseñar
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="space-y-0">
-                        {blocks.map((blockId) => (
-                          <div 
-                            key={blockId} 
-                            data-id={blockId}
-                            className="relative"
-                          >
-                            <SortableBlock
-                              id={blockId}
-                              onDelete={deleteBlock}
-                              onSelect={handleBlockSelect}
-                              isSelected={selectedBlockId === blockId}
-                              properties={blockProperties[blockId]}
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                  
+                  <div className="flex items-center gap-2">
+                    <button className="p-1.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400">
+                      <Minus size={16} />
+                    </button>
+                    <button className="p-1.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400">
+                      <Maximize2 size={16} />
+                    </button>
+                    <button className="p-1.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-red-500 hover:text-red-600">
+                      <X size={16} />
+                    </button>
                   </div>
                 </div>
-              </div>
 
-              {/* Panel de propiedades */}
-              {isPropertiesPanelOpen && (
-                <PropertiesPanel
-                  selectedBlockId={selectedBlockId}
-                  blockProperties={blockProperties}
-                  onUpdateProperties={handlePropertiesUpdate}
-                  onClose={handleClosePropertiesPanel}
-                />
-              )}
+                {/* Lienzo escalable */}
+                <div 
+                  style={{
+                    transform: `scale(${zoom / 100})`,
+                    transformOrigin: 'top center',
+                    width: '100%',
+                    maxWidth: isPropertiesPanelOpen ? '1200px' : '1800px', // Aumentado de 900px/1200px a 1200px/1500px
+                    margin: '0 auto',
+                    minHeight: 'calc(100vh - 120px)',
+                    background: 'white',
+                    boxShadow: '0 0 20px rgba(0,0,0,0.1)',
+                  }}
+                  className="transition-all duration-200"
+                >
+                  {blocks.length === 0 ? (
+                    <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-12 text-center min-h-[400px] flex flex-col items-center justify-center">
+                      <Code size={48} className="text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-xl font-semibold text-gray-600 dark:text-gray-400 mb-2">
+                        Tu lienzo está vacío
+                      </h3>
+                      <p className="text-gray-500 dark:text-gray-500">
+                        Arrastra componentes desde el panel lateral para comenzar a diseñar
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-0">
+                      {blocks.map((blockId) => (
+                        <div 
+                          key={blockId} 
+                          data-id={blockId}
+                          className="relative"
+                        >
+                          <SortableBlock
+                            id={blockId}
+                            onDelete={deleteBlock}
+                            onSelect={handleBlockSelect}
+                            isSelected={selectedBlockId === blockId}
+                            properties={blockProperties[blockId]}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </section>
+
+          {/* COLUMNA 3: Panel de propiedades (aparece/desaparece) */}
+          {isPropertiesPanelOpen && (
+            <aside className="w-80 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 h-screen flex flex-col flex-shrink-0">
+              {/* Header fijo del panel de propiedades */}
+              <div className="flex-shrink-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
+                    Propiedades
+                  </h3>
+                  <button
+                    onClick={handleClosePropertiesPanel}
+                    className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+                {selectedBlockId && (
+                  <div className="mt-2 bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
+                    <h4 className="font-medium text-gray-800 dark:text-white text-sm">
+                      {COMPONENTS_MAP[selectedBlockId.split('-')[0] as ComponentType]?.name}
+                    </h4>
+                    <p className="text-xs text-gray-600 dark:text-gray-400">
+                      {COMPONENTS_MAP[selectedBlockId.split('-')[0] as ComponentType]?.variants[parseInt(selectedBlockId.split('-')[1])]?.name}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Contenido scrolleable SOLO del panel de propiedades */}
+              <div className="flex-1 overflow-y-auto overflow-x-hidden">
+                <div className="p-4">
+                  <PropertiesPanel
+                    selectedBlockId={selectedBlockId}
+                    blockProperties={blockProperties}
+                    onUpdateProperties={handlePropertiesUpdate}
+                    onClose={handleClosePropertiesPanel}
+                  />
+                </div>
+              </div>
+            </aside>
+          )}
         </div>
       )}
     </main>

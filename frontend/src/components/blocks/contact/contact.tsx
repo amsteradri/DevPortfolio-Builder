@@ -2,20 +2,53 @@ import { Mail, User } from 'lucide-react';
 
 interface ContactProps {
   preview?: boolean;
+  properties?: {
+    title?: string;
+    description?: string;
+    backgroundColor?: string;
+    textColor?: string;
+    primaryColor?: string;
+    fontSize?: string;
+    textAlign?: string;
+    padding?: string;
+    borderRadius?: string;
+  };
 }
 
-export const ContactBlock = ({ preview = false }: ContactProps) => (
-  <div className={`${preview ? 'scale-75 pointer-events-none' : ''} bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700 p-6 rounded-xl border border-blue-200 dark:border-gray-600`}>
-    <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-4">Contacto</h3>
-    <div className="space-y-3">
-      <div className="flex items-center gap-3">
-        <Mail className="text-blue-500" size={20} />
-        <span className="text-gray-600 dark:text-gray-300">email@ejemplo.com</span>
+export const ContactBlock = ({ preview = false, properties = {} }: ContactProps) => {
+  const {
+    title = "Contacto",
+    description = "¿Tienes un proyecto en mente?",
+    backgroundColor = "#ffffff",
+    textColor = "#1f2937",
+    primaryColor = "#3b82f6",
+    fontSize = "text-2xl",
+    textAlign = "text-center",
+    padding = "p-8"
+  } = properties;
+
+  return (
+    <div 
+      className={`${preview ? 'scale-75 pointer-events-none' : ''} ${padding}`}
+      style={{ backgroundColor }}
+    >
+      <div className={`${textAlign} mb-8`}>
+        <h2 className={`${fontSize} font-bold mb-4`} style={{ color: textColor }}>
+          {title}
+        </h2>
+        <p style={{ color: textColor, opacity: 0.7 }}>
+          {description}
+        </p>
       </div>
-      <div className="flex items-center gap-3">
-        <User className="text-blue-500" size={20} />
-        <span className="text-gray-600 dark:text-gray-300">@usuario</span>
+      
+      <div className="max-w-md mx-auto">
+        <button 
+          className="w-full py-3 px-6 rounded-lg font-medium"
+          style={{ backgroundColor: primaryColor, color: '#ffffff' }}
+        >
+          Contactar
+        </button>
       </div>
     </div>
-  </div>
-);
+  );
+};

@@ -1,4 +1,4 @@
-import { User, Briefcase, Mail, Code } from 'lucide-react';
+import { User, Briefcase, Mail, Code, Zap } from 'lucide-react';
 import { LucideIcon } from 'lucide-react';
 import React from 'react';
 
@@ -7,10 +7,28 @@ import {
   HeroMinimal, 
   HeroWithSocial, 
   HeroWithBackground, 
-  HeroAsymmetric 
+  HeroAsymmetric,
+  HeroWithProfile,
+  HeroSplitScreen 
 } from './hero/hero';
-import { AboutSimple, AboutWithIcon } from './about/about';
-import { ProjectsBlock } from './projects/projects';
+import { 
+  AboutSimple, 
+  AboutWithIcon, 
+  AboutWithPhoto, 
+  AboutWithStats, 
+  AboutMinimal, 
+  AboutProfileCard, 
+  AboutWithSkills, 
+  AboutTimeline 
+} from './about/about';
+import { 
+  ProjectsGrid, 
+  ProjectsMasonry, 
+  ProjectsTimeline, 
+  ProjectsHorizontal, 
+  ProjectsMinimal,
+  ProjectsBlock 
+} from './projects/projects';
 import { ContactBlock } from './contact/contact';
 
 // Interfaces y tipos
@@ -32,27 +50,37 @@ export type ComponentType = 'hero' | 'about' | 'projects' | 'contact';
 export const COMPONENTS_MAP: Record<ComponentType, ComponentData> = {
   hero: {
     name: 'Hero',
-    icon: Code,
+    icon: Zap,
     variants: [
-      { 
-        component: HeroMinimal, 
-        name: 'Minimalista', 
-        description: 'Hero con gradiente y diseño centrado' 
+      {
+        name: 'Minimalista',
+        component: HeroMinimal,
+        description: 'Hero simple con gradiente'
       },
-      { 
-        component: HeroWithSocial, 
-        name: 'Social', 
-        description: 'Hero oscuro con redes sociales y CTA' 
+      {
+        name: 'Con Redes Sociales',
+        component: HeroWithSocial,
+        description: 'Incluye botones y redes sociales'
       },
-      { 
-        component: HeroWithBackground, 
-        name: 'Con Fondo', 
-        description: 'Hero con imagen de fondo y overlay' 
+      {
+        name: 'Con Fondo',
+        component: HeroWithBackground,
+        description: 'Hero con imagen de fondo'
       },
-      { 
-        component: HeroAsymmetric, 
-        name: 'Asimétrico', 
-        description: 'Hero con diseño de dos columnas' 
+      {
+        name: 'Asimétrico',
+        component: HeroAsymmetric,
+        description: 'Layout asimétrico con mockup'
+      },
+      {
+        name: 'Con Perfil',
+        component: HeroWithProfile,
+        description: 'Hero centrado con foto de perfil'
+      },
+      {
+        name: 'Split Screen',
+        component: HeroSplitScreen,
+        description: 'Pantalla dividida con imagen lateral'
       }
     ]
   },
@@ -60,15 +88,77 @@ export const COMPONENTS_MAP: Record<ComponentType, ComponentData> = {
     name: 'Sobre Mí',
     icon: User,
     variants: [
-      { component: AboutSimple, name: 'Simple', description: 'Sobre mí en formato texto simple' },
-      { component: AboutWithIcon, name: 'Con Icono', description: 'Sobre mí con icono destacado' }
+      {
+        name: 'Simple',
+        component: AboutSimple,
+        description: 'Texto simple con borde'
+      },
+      {
+        name: 'Con Icono',
+        component: AboutWithIcon,
+        description: 'Incluye icono de usuario'
+      },
+      {
+        name: 'Con Foto',
+        component: AboutWithPhoto,
+        description: 'Foto de perfil con información'
+      },
+      {
+        name: 'Con Estadísticas',
+        component: AboutWithStats,
+        description: 'Incluye métricas y números'
+      },
+      {
+        name: 'Minimalista',
+        component: AboutMinimal,
+        description: 'Diseño limpio con línea'
+      },
+      {
+        name: 'Tarjeta Perfil',
+        component: AboutProfileCard,
+        description: 'Tarjeta completa con gradiente'
+      },
+      {
+        name: 'Con Skills',
+        component: AboutWithSkills,
+        description: 'Incluye tecnologías y habilidades'
+      },
+      {
+        name: 'Timeline',
+        component: AboutTimeline,
+        description: 'Línea de tiempo de experiencia'
+      }
     ]
   },
   projects: {
     name: 'Proyectos',
     icon: Briefcase,
     variants: [
-      { component: ProjectsBlock, name: 'Grid', description: 'Proyectos en formato cuadrícula' }
+      {
+        name: 'Grid Clásico',
+        component: ProjectsGrid,
+        description: 'Grid de 3 columnas con hover effects'
+      },
+      {
+        name: 'Masonry',
+        component: ProjectsMasonry,
+        description: 'Distribución irregular tipo Pinterest'
+      },
+      {
+        name: 'Timeline',
+        component: ProjectsTimeline,
+        description: 'Línea de tiempo cronológica'
+      },
+      {
+        name: 'Horizontal',
+        component: ProjectsHorizontal,
+        description: 'Cards grandes horizontales'
+      },
+      {
+        name: 'Minimalista',
+        component: ProjectsMinimal,
+        description: 'Lista limpia y elegante'
+      }
     ]
   },
   contact: {
