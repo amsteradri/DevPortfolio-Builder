@@ -73,25 +73,26 @@ export const ProjectsGrid = ({ preview = false, properties = {} }: ProjectsProps
     ]
   } = properties;
 
+  // IMPORTANTE: Usar las propiedades personalizadas
   const projectsToShow = properties.projects || projects;
 
   return (
     <div 
-      className={`${preview ? 'scale-75 pointer-events-none' : ''} ${padding} min-h-[600px]`}
-      style={{ backgroundColor }}
+      className={`${preview ? 'scale-75 pointer-events-none' : ''} ${properties.padding || padding} min-h-[600px]`}
+      style={{ backgroundColor: properties.backgroundColor || backgroundColor }}
     >
-      <div className={`${textAlign} mb-12`}>
-        <h2 className={`${fontSize} font-bold mb-4`} style={{ color: textColor }}>
-          {title}
+      <div className={`${properties.textAlign || textAlign} mb-12`}>
+        <h2 className={`${properties.fontSize || fontSize} font-bold mb-4`} style={{ color: properties.textColor || textColor }}>
+          {properties.title || title}
         </h2>
-        <p className="text-xl max-w-2xl mx-auto" style={{ color: textColor, opacity: 0.7 }}>
-          {description}
+        <p className="text-xl max-w-2xl mx-auto" style={{ color: properties.textColor || textColor, opacity: 0.7 }}>
+          {properties.description || description}
         </p>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {projectsToShow.map((project, index) => (
-          <div key={index} className={`group ${borderRadius} overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2`} style={{ backgroundColor: '#ffffff' }}>
+          <div key={index} className={`group ${properties.borderRadius || borderRadius} overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2`} style={{ backgroundColor: '#ffffff' }}>
             <div className="relative overflow-hidden">
               <img 
                 src={project.image} 
@@ -99,18 +100,18 @@ export const ProjectsGrid = ({ preview = false, properties = {} }: ProjectsProps
                 className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
               />
               <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-300 flex items-center justify-center">
-                {showLinks && (
+                {(properties.showLinks !== undefined ? properties.showLinks : showLinks) && (
                   <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-3">
                     {project.demoLink && (
                       <a href={project.demoLink} target="_blank" rel="noopener noreferrer" 
                          className="p-2 bg-white rounded-full hover:bg-gray-100 transition-colors">
-                        <ExternalLink size={20} style={{ color: primaryColor }} />
+                        <ExternalLink size={20} style={{ color: properties.primaryColor || primaryColor }} />
                       </a>
                     )}
                     {project.githubLink && (
                       <a href={project.githubLink} target="_blank" rel="noopener noreferrer"
                          className="p-2 bg-white rounded-full hover:bg-gray-100 transition-colors">
-                        <Github size={20} style={{ color: textColor }} />
+                        <Github size={20} style={{ color: properties.textColor || textColor }} />
                       </a>
                     )}
                   </div>
@@ -118,21 +119,21 @@ export const ProjectsGrid = ({ preview = false, properties = {} }: ProjectsProps
               </div>
             </div>
             <div className="p-6">
-              <h3 className="text-xl font-bold mb-3" style={{ color: textColor }}>
+              <h3 className="text-xl font-bold mb-3" style={{ color: properties.textColor || textColor }}>
                 {project.title}
               </h3>
-              <p className="text-sm mb-4" style={{ color: textColor, opacity: 0.7 }}>
+              <p className="text-sm mb-4" style={{ color: properties.textColor || textColor, opacity: 0.7 }}>
                 {project.description}
               </p>
-              {showTechnologies && project.technologies && (
+              {(properties.showTechnologies !== undefined ? properties.showTechnologies : showTechnologies) && project.technologies && (
                 <div className="flex flex-wrap gap-2">
                   {project.technologies.map((tech, techIndex) => (
                     <span 
                       key={techIndex}
                       className="px-3 py-1 text-xs rounded-full"
                       style={{ 
-                        backgroundColor: `${primaryColor}15`,
-                        color: primaryColor
+                        backgroundColor: `${properties.primaryColor || primaryColor}15`,
+                        color: properties.primaryColor || primaryColor
                       }}
                     >
                       {tech}

@@ -598,6 +598,263 @@ const PropertiesPanel: React.FC<{
           {renderCheckbox("Mostrar redes sociales", "showSocial")}
         </>
       ))}
+
+      {/* Gestión de Proyectos */}
+      {(componentType === 'projects') && renderPropertySection("📋 Gestión de Proyectos", (
+        <>
+          <div className="space-y-4">
+            {/* Lista de proyectos actuales */}
+            {currentProperties.projects && currentProperties.projects.length > 0 ? (
+              currentProperties.projects.map((project: any, index: number) => (
+                <div key={index} className="border rounded-lg p-4 space-y-3 bg-gray-50 dark:bg-gray-800">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-medium text-gray-900 dark:text-white">Proyecto {index + 1}</h4>
+                    <button
+                      onClick={() => {
+                        const newProjects = [...currentProperties.projects];
+                        newProjects.splice(index, 1);
+                        updateProperty('projects', newProjects);
+                      }}
+                      className="text-red-500 hover:text-red-700 text-sm px-2 py-1 rounded"
+                    >
+                      Eliminar
+                    </button>
+                  </div>
+                  
+                  {/* Título del proyecto */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Título
+                    </label>
+                    <input
+                      type="text"
+                      value={project.title || ''}
+                      onChange={(e) => {
+                        const newProjects = [...currentProperties.projects];
+                        newProjects[index] = { ...newProjects[index], title: e.target.value };
+                        updateProperty('projects', newProjects);
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                      placeholder="Nombre del proyecto"
+                    />
+                  </div>
+
+                  {/* Descripción del proyecto */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Descripción
+                    </label>
+                    <textarea
+                      value={project.description || ''}
+                      onChange={(e) => {
+                        const newProjects = [...currentProperties.projects];
+                        newProjects[index] = { ...newProjects[index], description: e.target.value };
+                        updateProperty('projects', newProjects);
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm resize-none"
+                      rows={2}
+                      placeholder="Descripción del proyecto"
+                    />
+                  </div>
+
+                  {/* Imagen del proyecto */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Imagen
+                    </label>
+                    <div className="space-y-2">
+                      <input
+                        type="url"
+                        value={project.image || ''}
+                        onChange={(e) => {
+                          const newProjects = [...currentProperties.projects];
+                          newProjects[index] = { ...newProjects[index], image: e.target.value };
+                          updateProperty('projects', newProjects);
+                        }}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                        placeholder="URL de la imagen"
+                      />
+                      <div className="relative">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              const reader = new FileReader();
+                              reader.onload = (e) => {
+                                const imageUrl = e.target?.result as string;
+                                const newProjects = [...currentProperties.projects];
+                                newProjects[index] = { ...newProjects[index], image: imageUrl };
+                                updateProperty('projects', newProjects);
+                              };
+                              reader.readAsDataURL(file);
+                            }
+                          }}
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        />
+                        <div className="border border-dashed border-gray-300 dark:border-gray-600 rounded p-2 text-center hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
+                          <Upload size={14} className="mx-auto mb-1 text-gray-400" />
+                          <span className="text-xs text-gray-600 dark:text-gray-400">
+                            Subir imagen
+                          </span>
+                        </div>
+                      </div>
+                      {project.image && (
+                        <img 
+                          src={project.image} 
+                          alt="Preview" 
+                          className="w-full h-20 object-cover rounded border"
+                          onError={(e) => e.currentTarget.style.display = 'none'}
+                        />
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Tecnologías */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Tecnologías
+                    </label>
+                    <input
+                      type="text"
+                      value={project.technologies ? project.technologies.join(', ') : ''}
+                      onChange={(e) => {
+                        const techArray = e.target.value.split(',').map(tech => tech.trim()).filter(tech => tech);
+                        const newProjects = [...currentProperties.projects];
+                        newProjects[index] = { ...newProjects[index], technologies: techArray };
+                        updateProperty('projects', newProjects);
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                      placeholder="React, Node.js, MongoDB (separadas por comas)"
+                    />
+                    {project.technologies && project.technologies.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-1">
+                        {project.technologies.map((tech: string, techIndex: number) => (
+                          <span 
+                            key={techIndex}
+                            className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs rounded"
+                          >
+                            {tech}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Enlaces */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Demo
+                      </label>
+                      <input
+                        type="url"
+                        value={project.demoLink || ''}
+                        onChange={(e) => {
+                          const newProjects = [...currentProperties.projects];
+                          newProjects[index] = { ...newProjects[index], demoLink: e.target.value };
+                          updateProperty('projects', newProjects);
+                        }}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                        placeholder="https://demo.com"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        GitHub
+                      </label>
+                      <input
+                        type="url"
+                        value={project.githubLink || ''}
+                        onChange={(e) => {
+                          const newProjects = [...currentProperties.projects];
+                          newProjects[index] = { ...newProjects[index], githubLink: e.target.value };
+                          updateProperty('projects', newProjects);
+                        }}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                        placeholder="https://github.com/..."
+                      />
+                    </div>
+                  </div>
+
+                  {/* Fecha y Featured */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Fecha
+                      </label>
+                      <input
+                        type="text"
+                        value={project.date || ''}
+                        onChange={(e) => {
+                          const newProjects = [...currentProperties.projects];
+                          newProjects[index] = { ...newProjects[index], date: e.target.value };
+                          updateProperty('projects', newProjects);
+                        }}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                        placeholder="2024"
+                      />
+                    </div>
+                    <div className="flex items-center">
+                      <label className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={project.featured || false}
+                          onChange={(e) => {
+                            const newProjects = [...currentProperties.projects];
+                            newProjects[index] = { ...newProjects[index], featured: e.target.checked };
+                            updateProperty('projects', newProjects);
+                          }}
+                          className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 dark:border-gray-600"
+                        />
+                        <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Destacado</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                No hay proyectos añadidos aún
+              </div>
+            )}
+            
+            {/* Botón para añadir proyecto */}
+            <button
+              onClick={() => {
+                const newProject = {
+                  title: "Nuevo Proyecto",
+                  description: "Descripción del proyecto",
+                  image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=250&fit=crop",
+                  technologies: ["React"],
+                  demoLink: "",
+                  githubLink: "",
+                  date: "2024",
+                  featured: false
+                };
+                const currentProjects = currentProperties.projects || [];
+                updateProperty('projects', [...currentProjects, newProject]);
+              }}
+              className="w-full py-3 px-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg text-gray-600 dark:text-gray-400 hover:border-gray-400 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center justify-center gap-2"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              Añadir Proyecto
+            </button>
+          </div>
+        </>
+      ))}
+
+      {/* Opciones de Visualización - Projects */}
+      {(componentType === 'projects') && renderPropertySection("👁️ Mostrar/Ocultar", (
+        <>
+          {renderCheckbox("Mostrar tecnologías", "showTechnologies")}
+          {renderCheckbox("Mostrar enlaces", "showLinks")}
+          {renderCheckbox("Mostrar fechas", "showDate")}
+        </>
+      ))}
     </>
   );
 };
