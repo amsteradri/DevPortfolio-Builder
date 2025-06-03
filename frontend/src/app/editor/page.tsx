@@ -301,7 +301,12 @@ const PropertiesPanel: React.FC<{
       const reader = new FileReader();
       reader.onload = (e) => {
         const imageUrl = e.target?.result as string;
-        updateProperty(key, imageUrl);
+        if (selectedBlockId) {
+          onUpdateProperties(selectedBlockId, {
+            ...currentProperties,
+            [key]: imageUrl
+          });
+        }
       };
       reader.readAsDataURL(file);
     }
@@ -310,25 +315,27 @@ const PropertiesPanel: React.FC<{
   // Función para renderizar input de imagen con opción de subir archivo
   const renderImageInput = (label: string, key: string, placeholder: string = "") => (
     <div className="space-y-3">
-      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
         {label}
       </label>
       
-      {/* Input de URL */}
-      <div className="space-y-2">
-        <input
-          type="url"
-          value={currentProperties[key] || ''}
-          onChange={(e) => updateProperty(key, e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-          placeholder={placeholder}
-        />
-        <div className="text-xs text-gray-500 dark:text-gray-400">
-          Pega una URL de imagen o sube un archivo
-        </div>
+      {/* Input para URL de imagen */}
+      <input
+        type="url"
+        value={currentProperties[key] || ''}
+        onChange={(e) => updateProperty(key, e.target.value)}
+        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+        placeholder={placeholder || "URL de la imagen..."}
+      />
+      
+      {/* Separador */}
+      <div className="flex items-center gap-3">
+        <div className="flex-1 h-px bg-gray-300 dark:bg-gray-600"></div>
+        <span className="text-xs text-gray-500 dark:text-gray-400">O</span>
+        <div className="flex-1 h-px bg-gray-300 dark:bg-gray-600"></div>
       </div>
 
-      {/* Input de archivo */}
+      {/* Input para subir archivo */}
       <div className="relative">
         <input
           type="file"
@@ -340,35 +347,37 @@ const PropertiesPanel: React.FC<{
             }
           }}
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+          id={`upload-${key}`}
         />
-        <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center hover:border-gray-400 dark:hover:border-gray-500 transition-colores">
-          <Upload size={20} className="mx-auto mb-2 text-gray-400" />
+        <label
+          htmlFor={`upload-${key}`}
+          className="flex items-center justify-center gap-2 w-full px-4 py-3 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-md hover:border-blue-400 dark:hover:border-blue-500 transition-colores cursor-pointer bg-gray-50 dark:bg-gray-700"
+        >
+          <Upload size={16} className="text-gray-500 dark:text-gray-400" />
           <span className="text-sm text-gray-600 dark:text-gray-400">
-            Haz clic para subir una imagen
+            Subir desde computadora
           </span>
-        </div>
+        </label>
       </div>
 
       {/* Vista previa de la imagen */}
       {currentProperties[key] && (
-        <div className="mt-3">
-          <div className="text-sm text-gray-700 dark:text-gray-300 mb-2">Vista previa:</div>
-          <div className="relative inline-block">
-            <img 
-              src={currentProperties[key]} 
-              alt="Preview" 
-              className="w-20 h-20 rounded-lg object-cover border-2 border-gray-300 dark:border-gray-600"
-              onError={(e) => {
-                e.currentTarget.style.display = 'none';
-              }}
-            />
-            <button
-              onClick={() => updateProperty(key, '')}
-              className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600"
-            >
-              ✕
-            </button>
-          </div>
+        <div className="relative">
+          <img 
+            src={currentProperties[key]} 
+            alt="Vista previa" 
+            className="w-full h-32 object-cover rounded-md border border-gray-200 dark:border-gray-600"
+            onError={(e) => {
+              e.currentTarget.style.display = 'none';
+            }}
+          />
+          <button
+            onClick={() => updateProperty(key, '')}
+            className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colores"
+            title="Eliminar imagen"
+          >
+            <X size={12} />
+          </button>
         </div>
       )}
     </div>
@@ -693,7 +702,7 @@ const PropertiesPanel: React.FC<{
                           }}
                           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                         />
-                        <div className="border border-dashed border-gray-300 dark:border-gray-600 rounded p-2 text-center hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
+                        <div className="border border-dashed border-gray-300 dark:border-gray-600 rounded p-2 text-center hover:border-gray-400 dark:hover:border-gray-500 transition-colores">
                           <Upload size={14} className="mx-auto mb-1 text-gray-400" />
                           <span className="text-xs text-gray-600 dark:text-gray-400">
                             Subir imagen
@@ -705,7 +714,8 @@ const PropertiesPanel: React.FC<{
                           src={project.image} 
                           alt="Preview" 
                           className="w-full h-20 object-cover rounded border"
-                          onError={(e) => e.currentTarget.style.display = 'none'}
+                          onError={(e) => e.currentTarget.style.display = 'none'
+                          }
                         />
                       )}
                     </div>
@@ -854,6 +864,191 @@ const PropertiesPanel: React.FC<{
           {renderCheckbox("Mostrar enlaces", "showLinks")}
           {renderCheckbox("Mostrar fechas", "showDate")}
         </>
+      ))}
+
+      {/* Imágenes específicas para About - NUEVA SECCIÓN */}
+      {(componentType === 'about') && renderPropertySection("🖼️ Imágenes", (
+        <div className="space-y-4">
+          {renderImageInput("Imagen de Perfil", "profileImage", "https://ejemplo.com/mi-foto.jpg")}
+        </div>
+      ))}
+
+      {/* Información Personal específica para About - NUEVA SECCIÓN */}
+      {(componentType === 'about') && renderPropertySection("👤 Información Personal", (
+        <div className="space-y-4">
+          {renderTextInput("Nombre", "name", "Tu nombre completo")}
+          {renderTextInput("Rol/Posición", "role", "Desarrollador Full Stack")}
+          {renderTextInput("Ubicación", "location", "Ciudad, País")}
+          {renderTextarea("Descripción", "description", "Cuéntanos sobre ti...")}
+        </div>
+      ))}
+
+      {/* Experiencia y Estadísticas específicas para About - NUEVA SECCIÓN */}
+      {(componentType === 'about') && renderPropertySection("💼 Experiencia", (
+        <div className="space-y-4">
+          {renderTextInput("Años de Experiencia", "experience", "5+")}
+          {renderTextInput("Proyectos Completados", "projectsCount", "50+")}
+          {renderTextInput("Clientes Satisfechos", "clientsCount", "30+")}
+          {renderTextInput("Cafés Bebidos", "coffeeCount", "∞")}
+        </div>
+      ))}
+
+      {/* Habilidades específicas para About - NUEVA SECCIÓN */}
+      {(componentType === 'about') && renderPropertySection("🛠️ Habilidades", (
+        <div className="space-y-4">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Tecnologías y Herramientas
+          </label>
+          <textarea
+            value={currentProperties.skills ? currentProperties.skills.join(', ') : ''}
+            onChange={(e) => {
+              const skillsArray = e.target.value.split(',').map(skill => skill.trim()).filter(skill => skill.length > 0);
+              updateProperty('skills', skillsArray);
+            }}
+            rows={3}
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none text-sm"
+            placeholder="React, Node.js, TypeScript, AWS (separadas por comas)"
+          />
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            Separa cada habilidad con una coma
+          </p>
+          {/* Vista previa de habilidades */}
+          {currentProperties.skills && currentProperties.skills.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-2">
+              {currentProperties.skills.map((skill: string, index: number) => (
+                <span 
+                  key={index}
+                  className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs rounded-full"
+                >
+                  {skill}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      ))}
+
+      {/* Enlaces sociales específicos para About - NUEVA SECCIÓN */}
+      {(componentType === 'about') && renderPropertySection("🔗 Enlaces", (
+        <div className="space-y-4">
+          {renderTextInput("Email", "emailLink", "mailto:tu@email.com")}
+          {renderTextInput("LinkedIn", "linkedinLink", "https://linkedin.com/in/tu-perfil")}
+          {renderTextInput("GitHub", "githubLink", "https://github.com/tu-usuario")}
+          {renderTextInput("Teléfono", "phoneLink", "tel:+1234567890")}
+          {renderTextInput("CV/Currículum", "cvLink", "https://ejemplo.com/mi-cv.pdf")}
+          {renderTextInput("Texto del Botón", "buttonText", "Descargar CV")}
+        </div>
+      ))}
+
+      {/* Timeline específica para About - NUEVA SECCIÓN */}
+      {(componentType === 'about') && renderPropertySection("📅 Timeline", (
+        <div className="space-y-4">
+          {/* Lista de elementos del timeline */}
+          {currentProperties.timeline && currentProperties.timeline.length > 0 ? (
+            currentProperties.timeline.map((item: any, index: number) => (
+              <div key={index} className="border rounded-lg p-4 space-y-3 bg-gray-50 dark:bg-gray-800">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-medium text-gray-900 dark:text-white">Evento {index + 1}</h4>
+                  <button
+                    onClick={() => {
+                      const newTimeline = [...currentProperties.timeline];
+                      newTimeline.splice(index, 1);
+                      updateProperty('timeline', newTimeline);
+                    }}
+                    className="text-red-500 hover:text-red-700 text-sm px-2 py-1 rounded"
+                  >
+                    Eliminar
+                  </button>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Año
+                    </label>
+                    <input
+                      type="text"
+                      value={item.year || ''}
+                      onChange={(e) => {
+                        const newTimeline = [...currentProperties.timeline];
+                        newTimeline[index] = { ...newTimeline[index], year: e.target.value };
+                        updateProperty('timeline', newTimeline);
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                      placeholder="2024"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Título
+                    </label>
+                    <input
+                      type="text"
+                      value={item.title || ''}
+                      onChange={(e) => {
+                        const newTimeline = [...currentProperties.timeline];
+                        newTimeline[index] = { ...newTimeline[index], title: e.target.value };
+                        updateProperty('timeline', newTimeline);
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                      placeholder="Senior Developer"
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Empresa
+                  </label>
+                  <input
+                    type="text"
+                    value={item.company || ''}
+                    onChange={(e) => {
+                      const newTimeline = [...currentProperties.timeline];
+                      newTimeline[index] = { ...newTimeline[index], company: e.target.value };
+                      updateProperty('timeline', newTimeline);
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                    placeholder="Nombre de la empresa"
+                  />
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="text-center py-4 text-gray-500 dark:text-gray-400 text-sm">
+              No hay eventos en el timeline aún
+            </div>
+          )}
+          
+          {/* Botón para añadir evento al timeline */}
+          <button
+            onClick={() => {
+              const newEvent = {
+                year: "2024",
+                title: "Nuevo Puesto",
+                company: "Empresa"
+              };
+              const currentTimeline = currentProperties.timeline || [];
+              updateProperty('timeline', [...currentTimeline, newEvent]);
+            }}
+            className="w-full py-3 px-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg text-gray-600 dark:text-gray-400 hover:border-gray-400 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colores flex items-center justify-center gap-2 text-sm"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            Añadir Evento
+          </button>
+        </div>
+      ))}
+
+      {/* Opciones de visualización específicas para About - NUEVA SECCIÓN */}
+      {(componentType === 'about') && renderPropertySection("👁️ Mostrar/Ocultar", (
+        <div className="space-y-4">
+          {renderCheckbox("Mostrar Icono", "showIcon", true)}
+          {renderCheckbox("Mostrar Estadísticas", "showStats", true)}
+          {renderCheckbox("Mostrar Enlaces Sociales", "showSocial", true)}
+          {renderCheckbox("Mostrar Botón", "showButton", true)}
+        </div>
       ))}
     </>
   );
