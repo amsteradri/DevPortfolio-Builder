@@ -29,7 +29,14 @@ import {
   ProjectsMinimal,
   ProjectsBlock 
 } from './projects/projects';
-import { ContactBlock } from './contact/contact';
+import { 
+  ContactSimple,
+  ContactCards,
+  ContactMinimal,
+  ContactAvailability,
+  ContactGradient,
+  ContactBlock 
+} from './contact/contact';
 
 // Interfaces y tipos
 export interface ComponentData {
@@ -165,7 +172,36 @@ export const COMPONENTS_MAP: Record<ComponentType, ComponentData> = {
     name: 'Contacto',
     icon: Mail,
     variants: [
-      { component: ContactBlock, name: 'Lista', description: 'Contacto en formato lista con iconos' }
+      {
+        name: 'Simple',
+        component: ContactSimple,
+        description: 'Contacto centrado con call-to-action'
+      },
+      {
+        name: 'Tarjetas',
+        component: ContactCards,
+        description: 'Múltiples métodos en tarjetas'
+      },
+      {
+        name: 'Minimalista',
+        component: ContactMinimal,
+        description: 'Diseño limpio con botón destacado'
+      },
+      {
+        name: 'Con Disponibilidad',
+        component: ContactAvailability,
+        description: 'Muestra estado y disponibilidad'
+      },
+      {
+        name: 'Gradiente',
+        component: ContactGradient,
+        description: 'Diseño visual con gradientes'
+      },
+      {
+        name: 'Clásico',
+        component: ContactBlock,
+        description: 'Contacto tradicional en lista'
+      }
     ]
   }
 };
