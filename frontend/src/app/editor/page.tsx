@@ -1050,6 +1050,45 @@ const PropertiesPanel: React.FC<{
           {renderCheckbox("Mostrar Botón", "showButton", true)}
         </div>
       ))}
+
+      {/* Información de Contacto específica para Contact - NUEVA SECCIÓN */}
+      {(componentType === 'contact') && renderPropertySection("📞 Información de Contacto", (
+        <div className="space-y-4">
+          {renderTextInput("Email", "email", "contacto@ejemplo.com")}
+          {renderTextInput("Teléfono", "phone", "+34 123 456 789")}
+          {renderTextInput("Dirección", "address", "Madrid, España")}
+          {renderTextInput("Sitio Web", "website", "https://mi-portfolio.com")}
+        </div>
+      ))}
+
+      {/* Enlaces Sociales específicos para Contact - NUEVA SECCIÓN */}
+      {(componentType === 'contact') && renderPropertySection("🔗 Redes Sociales", (
+        <div className="space-y-4">
+          {renderTextInput("LinkedIn", "linkedinUrl", "https://linkedin.com/in/tu-perfil")}
+          {renderTextInput("GitHub", "githubUrl", "https://github.com/tu-usuario")}
+          {renderTextInput("Twitter", "twitterUrl", "https://twitter.com/tu-usuario")}
+          {renderTextInput("Instagram", "instagramUrl", "https://instagram.com/tu-usuario")}
+        </div>
+      ))}
+
+      {/* Disponibilidad específica para Contact - NUEVA SECCIÓN */}
+      {(componentType === 'contact') && renderPropertySection("⏰ Disponibilidad", (
+        <div className="space-y-4">
+          {renderTextInput("Estado de Disponibilidad", "availability", "Disponible para nuevos proyectos")}
+          {renderTextInput("Zona Horaria", "timezone", "UTC+1 (Madrid)")}
+          {renderTextInput("Tiempo de Respuesta", "responseTime", "< 24 horas")}
+        </div>
+      ))}
+
+      {/* Textos del Botón específicos para Contact - NUEVA SECCIÓN */}
+      {(componentType === 'contact') && renderPropertySection("🔘 Configuración de Botones", (
+        <div className="space-y-4">
+          {renderTextInput("Texto del Botón Principal", "buttonText", "Enviar Mensaje")}
+          {renderCheckbox("Mostrar Botón Principal", "showButton", true)}
+          {renderCheckbox("Mostrar Enlaces Sociales", "showSocial", true)}
+          {renderCheckbox("Mostrar Información de Disponibilidad", "showAvailability", true)}
+        </div>
+      ))}
     </>
   );
 };

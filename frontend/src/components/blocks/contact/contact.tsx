@@ -35,7 +35,7 @@ interface ContactProps {
   };
 }
 
-// Contacto Simple - Centrado y elegante
+// Contacto Simple - COMPLETAMENTE EDITABLE
 export const ContactSimple = ({ preview = false, properties = {} }: ContactProps) => {
   return (
     <div 
@@ -51,23 +51,23 @@ export const ContactSimple = ({ preview = false, properties = {} }: ContactProps
         </div>
         
         <h2 
-          className={`${properties.fontSize || 'text-4xl'} font-bold mb-4`}
+          className={`${properties.fontSize || 'text-4xl'} font-bold mb-4 ${properties.textAlign || 'text-center'}`}
           style={{ color: properties.textColor || '#1f2937' }}
         >
           {properties.title || "¡Hablemos!"}
         </h2>
         
         <p 
-          className="text-xl mb-8 leading-relaxed"
+          className={`text-xl mb-8 leading-relaxed ${properties.textAlign || 'text-center'}`}
           style={{ color: properties.textColor || '#1f2937', opacity: 0.7 }}
         >
           {properties.description || "¿Tienes un proyecto en mente? Me encantaría escuchar tus ideas y ayudarte a convertirlas en realidad."}
         </p>
         
-        {properties.showButton !== false && (
+        {(properties.showButton ?? true) && (
           <a
             href={`mailto:${properties.email || 'contacto@ejemplo.com'}`}
-            className="inline-flex items-center gap-3 px-8 py-4 rounded-full font-semibold text-lg transition-all hover:shadow-lg hover:scale-105"
+            className="inline-flex items-center gap-3 px-8 py-4 rounded-xl font-semibold text-lg transition-all hover:shadow-lg hover:scale-105"
             style={{ 
               backgroundColor: properties.primaryColor || '#3b82f6',
               color: '#ffffff'
@@ -82,7 +82,7 @@ export const ContactSimple = ({ preview = false, properties = {} }: ContactProps
   );
 };
 
-// Contacto con Tarjetas de Información
+// Contacto con Tarjetas de Información - COMPLETAMENTE EDITABLE
 export const ContactCards = ({ preview = false, properties = {} }: ContactProps) => {
   const contactMethods = [
     {
@@ -90,13 +90,13 @@ export const ContactCards = ({ preview = false, properties = {} }: ContactProps)
       title: "Email",
       value: properties.email || "contacto@ejemplo.com",
       href: `mailto:${properties.email || 'contacto@ejemplo.com'}`,
-      description: "Respuesta en 24h"
+      description: properties.responseTime || "Respuesta en 24h"
     },
     {
       icon: Phone,
       title: "Teléfono",
       value: properties.phone || "+34 123 456 789",
-      href: `tel:${properties.phone || '+34123456789'}`,
+      href: `tel:${properties.phone?.replace(/\s/g, '') || '+34123456789'}`,
       description: "Lun - Vie, 9:00-18:00"
     },
     {
@@ -113,7 +113,7 @@ export const ContactCards = ({ preview = false, properties = {} }: ContactProps)
       className={`${preview ? 'scale-75 pointer-events-none' : ''} ${properties.padding || 'p-10'} ${properties.borderRadius || 'rounded-xl'} min-h-[500px]`}
       style={{ backgroundColor: properties.backgroundColor || '#ffffff' }}
     >
-      <div className="text-center mb-12">
+      <div className={`text-center mb-12 ${properties.textAlign || 'text-center'}`}>
         <h2 
           className={`${properties.fontSize || 'text-3xl'} font-bold mb-4`}
           style={{ color: properties.textColor || '#1f2937' }}
@@ -176,7 +176,7 @@ export const ContactCards = ({ preview = false, properties = {} }: ContactProps)
         })}
       </div>
 
-      {properties.showSocial !== false && (
+      {(properties.showSocial ?? true) && (
         <div className="text-center">
           <p className="text-sm mb-4" style={{ color: properties.textColor || '#1f2937', opacity: 0.6 }}>
             También puedes encontrarme en:
@@ -215,6 +215,17 @@ export const ContactCards = ({ preview = false, properties = {} }: ContactProps)
                 <Twitter size={20} style={{ color: properties.primaryColor || '#3b82f6' }} />
               </a>
             )}
+            {properties.instagramUrl && (
+              <a
+                href={properties.instagramUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-3 rounded-full border hover:shadow-lg transition-all"
+                style={{ borderColor: `${properties.primaryColor || '#3b82f6'}30` }}
+              >
+                <Instagram size={20} style={{ color: properties.primaryColor || '#3b82f6' }} />
+              </a>
+            )}
           </div>
         </div>
       )}
@@ -222,14 +233,14 @@ export const ContactCards = ({ preview = false, properties = {} }: ContactProps)
   );
 };
 
-// Contacto Minimalista con Call-to-Action
+// Contacto Minimalista - COMPLETAMENTE EDITABLE
 export const ContactMinimal = ({ preview = false, properties = {} }: ContactProps) => {
   return (
     <div 
       className={`${preview ? 'scale-75 pointer-events-none' : ''} ${properties.padding || 'p-16'} min-h-[400px] flex items-center justify-center`}
       style={{ backgroundColor: properties.backgroundColor || '#f1f5f9' }}
     >
-      <div className="max-w-4xl mx-auto text-center">
+      <div className={`max-w-4xl mx-auto ${properties.textAlign || 'text-center'}`}>
         <h2 
           className={`${properties.fontSize || 'text-5xl'} font-bold mb-6`}
           style={{ color: properties.textColor || '#0f172a' }}
@@ -245,18 +256,20 @@ export const ContactMinimal = ({ preview = false, properties = {} }: ContactProp
         </p>
         
         <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-          <a
-            href={`mailto:${properties.email || 'contacto@ejemplo.com'}`}
-            className="group flex items-center gap-3 px-8 py-4 rounded-full font-semibold text-lg transition-all hover:shadow-2xl hover:scale-105"
-            style={{ 
-              backgroundColor: properties.primaryColor || '#3b82f6',
-              color: '#ffffff'
-            }}
-          >
-            <Mail size={20} />
-            {properties.buttonText || "Hablemos"}
-            <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-          </a>
+          {(properties.showButton ?? true) && (
+            <a
+              href={`mailto:${properties.email || 'contacto@ejemplo.com'}`}
+              className="group flex items-center gap-3 px-8 py-4 rounded-full font-semibold text-lg transition-all hover:shadow-2xl hover:scale-105"
+              style={{ 
+                backgroundColor: properties.primaryColor || '#3b82f6',
+                color: '#ffffff'
+              }}
+            >
+              <Mail size={20} />
+              {properties.buttonText || "Hablemos"}
+              <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+            </a>
+          )}
           
           <div className="flex items-center gap-2 text-sm" style={{ color: properties.textColor || '#0f172a', opacity: 0.6 }}>
             <Clock size={16} />
@@ -268,7 +281,7 @@ export const ContactMinimal = ({ preview = false, properties = {} }: ContactProp
   );
 };
 
-// Contacto con Disponibilidad y Estado
+// Contacto con Disponibilidad - COMPLETAMENTE EDITABLE
 export const ContactAvailability = ({ preview = false, properties = {} }: ContactProps) => {
   return (
     <div 
@@ -278,7 +291,7 @@ export const ContactAvailability = ({ preview = false, properties = {} }: Contac
       <div className="max-w-4xl mx-auto w-full">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Información principal */}
-          <div>
+          <div className={properties.textAlign || 'text-left'}>
             <div className="flex items-center gap-3 mb-6">
               <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse"></div>
               <span className="text-sm font-medium" style={{ color: properties.primaryColor || '#22c55e' }}>
@@ -321,17 +334,19 @@ export const ContactAvailability = ({ preview = false, properties = {} }: Contac
               </div>
             </div>
             
-            <a
-              href={`mailto:${properties.email || 'contacto@ejemplo.com'}`}
-              className="inline-flex items-center gap-3 px-6 py-3 rounded-lg font-semibold transition-all hover:shadow-lg"
-              style={{ 
-                backgroundColor: properties.primaryColor || '#3b82f6',
-                color: '#ffffff'
-              }}
-            >
-              <Send size={18} />
-              {properties.buttonText || "Iniciar Conversación"}
-            </a>
+            {(properties.showButton ?? true) && (
+              <a
+                href={`mailto:${properties.email || 'contacto@ejemplo.com'}`}
+                className="inline-flex items-center gap-3 px-6 py-3 rounded-lg font-semibold transition-all hover:shadow-lg"
+                style={{ 
+                  backgroundColor: properties.primaryColor || '#3b82f6',
+                  color: '#ffffff'
+                }}
+              >
+                <Send size={18} />
+                {properties.buttonText || "Iniciar Conversación"}
+              </a>
+            )}
           </div>
           
           {/* Panel de información */}
@@ -370,7 +385,7 @@ export const ContactAvailability = ({ preview = false, properties = {} }: Contac
               </div>
             </div>
             
-            {properties.showAvailability !== false && (
+            {(properties.showAvailability ?? true) && (
               <div 
                 className="p-6 rounded-xl"
                 style={{ backgroundColor: `${properties.secondaryColor || '#10b981'}10` }}
@@ -407,7 +422,7 @@ export const ContactAvailability = ({ preview = false, properties = {} }: Contac
   );
 };
 
-// Contacto con Gradiente y Efecto Visual
+// Contacto con Gradiente - COMPLETAMENTE EDITABLE
 export const ContactGradient = ({ preview = false, properties = {} }: ContactProps) => {
   return (
     <div 
@@ -421,7 +436,7 @@ export const ContactGradient = ({ preview = false, properties = {} }: ContactPro
       <div className="absolute bottom-0 left-0 w-64 h-64 bg-white opacity-5 rounded-full translate-y-32 -translate-x-32"></div>
       
       <div className={`${properties.padding || 'p-12'} relative z-10 flex items-center justify-center min-h-[500px]`}>
-        <div className="text-center max-w-3xl text-white">
+        <div className={`max-w-3xl text-white ${properties.textAlign || 'text-center'}`}>
           <div className="w-24 h-24 bg-white bg-opacity-20 rounded-full mx-auto mb-8 flex items-center justify-center backdrop-blur-sm">
             <MessageCircle size={32} className="text-white" />
           </div>
@@ -435,14 +450,16 @@ export const ContactGradient = ({ preview = false, properties = {} }: ContactPro
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a
-              href={`mailto:${properties.email || 'contacto@ejemplo.com'}`}
-              className="px-8 py-4 bg-white rounded-full font-semibold text-lg transition-all hover:shadow-2xl hover:scale-105 flex items-center justify-center gap-3"
-              style={{ color: properties.primaryColor || '#3b82f6' }}
-            >
-              <Mail size={20} />
-              {properties.buttonText || "Enviar Email"}
-            </a>
+            {(properties.showButton ?? true) && (
+              <a
+                href={`mailto:${properties.email || 'contacto@ejemplo.com'}`}
+                className="px-8 py-4 bg-white rounded-full font-semibold text-lg transition-all hover:shadow-2xl hover:scale-105 flex items-center justify-center gap-3"
+                style={{ color: properties.primaryColor || '#3b82f6' }}
+              >
+                <Mail size={20} />
+                {properties.buttonText || "Enviar Email"}
+              </a>
+            )}
             
             {properties.website && (
               <a
@@ -457,7 +474,7 @@ export const ContactGradient = ({ preview = false, properties = {} }: ContactPro
             )}
           </div>
           
-          {properties.showSocial !== false && (
+          {(properties.showSocial ?? true) && (
             <div className="mt-10 pt-8 border-t border-white border-opacity-20">
               <p className="text-white text-opacity-70 mb-4">Sígueme en:</p>
               <div className="flex justify-center gap-4">
@@ -491,6 +508,16 @@ export const ContactGradient = ({ preview = false, properties = {} }: ContactPro
                     <Twitter size={20} className="text-white" />
                   </a>
                 )}
+                {properties.instagramUrl && (
+                  <a
+                    href={properties.instagramUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center hover:bg-opacity-30 transition-all backdrop-blur-sm"
+                  >
+                    <Instagram size={20} className="text-white" />
+                  </a>
+                )}
               </div>
             </div>
           )}
@@ -500,7 +527,7 @@ export const ContactGradient = ({ preview = false, properties = {} }: ContactPro
   );
 };
 
-// Mantener el componente original como alternativa
+// Mantener el componente original como alternativa - COMPLETAMENTE EDITABLE
 export const ContactBlock = ({ preview = false, properties = {} }: ContactProps) => {
   return <ContactSimple preview={preview} properties={properties} />;
 };
