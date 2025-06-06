@@ -15,6 +15,8 @@ const navItems = [
 
 export default function Navbar() {
   const pathname = usePathname();
+  if (pathname.startsWith("/p")) return null;
+
   const [isOpen, setIsOpen] = useState(false);
 
   const linkClass = (href: string) =>

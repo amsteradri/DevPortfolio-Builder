@@ -14,3 +14,7 @@ docker-volume/
 
 # VSCode
 .vscode/
+
+# Python
+*.pyc
+__pycache__/

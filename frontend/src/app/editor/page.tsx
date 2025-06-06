@@ -977,13 +977,34 @@ export default function VisualWebEditor() {
   const [blockProperties, setBlockProperties] = useState<{[key: string]: any}>({});
 
   // Función para guardar el estado del proyecto
-  const saveProjectState = () => {
+  const saveProjectState = async () => {
     const projectState = {
-      projectName,
+      name: projectName,
       blocks,
       blockProperties,
       lastUpdated: new Date().toISOString()
     };
+
+    try {
+      const response = await fetch('http://localhost:8000/portfolio/save/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(projectState),
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al guardar el portfolio');
+      }
+
+      const data = await response.json();
+      console.log('Portfolio guardado:', data);
+    } catch (error) {
+      console.error('Error al guardar:', error);
+    }
+
+    // También guardamos en localStorage como respaldo
     localStorage.setItem('devportfolio-project', JSON.stringify(projectState));
   };
 
@@ -1132,9 +1153,9 @@ export default function VisualWebEditor() {
     // Asegurarse de que los datos estén guardados antes de abrir
     saveProjectState();
     
-    // Abrir la ventana de previsualización
-    const previewUrl = '/preview';
-    window.open(previewUrl, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
+    // Abrir la ventana de previsualización con la URL del portfolio
+    const previewUrl = `/p/${projectName.toLowerCase().replace(/\s+/g, '-')}`;
+    window.open(previewUrl, '_blank');
   };
 
   const handleClosePropertiesPanel = () => {
