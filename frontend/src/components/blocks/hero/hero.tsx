@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { ReactNode, useEffect } from 'react';
 import { Github, Linkedin, Twitter, ArrowRight, ChevronRight, Mail, Phone } from 'lucide-react';
 
 interface HeroProps {
@@ -28,6 +28,65 @@ interface HeroProps {
     phoneLink?: string;
   };
 }
+
+// Función universal para hacer scroll a proyectos
+const scrollToProjects = () => {
+  // 1. Buscar por atributo data-component-type (más específico)
+  const projectsSection = document.querySelector('[data-component-type="projects"]');
+  if (projectsSection) {
+    projectsSection.scrollIntoView({ 
+      behavior: 'smooth',
+      block: 'start',
+      inline: 'nearest'
+    });
+    return;
+  }
+
+  // 2. Buscar por ID que contenga "projects"
+  const projectsById = document.querySelector('[data-id*="projects"]');
+  if (projectsById) {
+    projectsById.scrollIntoView({ 
+      behavior: 'smooth',
+      block: 'start',
+      inline: 'nearest'
+    });
+    return;
+  }
+
+  // 3. Buscar por contenido de texto (menos confiable pero útil)
+  const allSections = document.querySelectorAll('div, section, article');
+  for (const section of allSections) {
+    const textContent = section.textContent?.toLowerCase() || '';
+    const hasProjectText = textContent.includes('proyecto') || 
+                          textContent.includes('portfolio') || 
+                          textContent.includes('trabajos') ||
+                          textContent.includes('mis proyectos');
+    
+    if (hasProjectText && section.querySelector('img, a[href*="github"], a[href*="demo"]')) {
+      section.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'start',
+        inline: 'nearest'
+      });
+      return;
+    }
+  }
+
+  // 4. Fallback: buscar elementos que parezcan proyectos
+  const projectLikeElements = document.querySelectorAll('div:has(img):has(a[href*="github"]), div:has(img):has(a[href*="demo"])');
+  if (projectLikeElements.length > 0) {
+    const firstProject = projectLikeElements[0].closest('div[class*="grid"], div[class*="space-y"], section, article') || projectLikeElements[0];
+    firstProject.scrollIntoView({ 
+      behavior: 'smooth',
+      block: 'start',
+      inline: 'nearest'
+    });
+    return;
+  }
+
+  // 5. Si nada funciona, mostrar un mensaje
+  console.log('No se encontró sección de proyectos para hacer scroll');
+};
 
 // Hero Minimalista con gradiente - MEJORADO
 export const HeroMinimal = ({ preview = false, properties = {} }: HeroProps) => {
@@ -120,10 +179,11 @@ export const HeroWithSocial = ({ preview = false, properties = {} }: HeroProps) 
           {properties.description || description}
         </p>
 
-        {(properties.showButton !== undefined ? properties.showButton : showButton) && (
+        {(properties.showButton !== undefined ? properties.showButton : showButton) && !preview && (
           <div className="flex items-center justify-center gap-4 mb-8">
             <button 
-              className="px-8 py-3 rounded-lg font-medium flex items-center gap-2"
+              onClick={scrollToProjects}
+              className="px-8 py-3 rounded-lg font-medium flex items-center gap-2 cursor-pointer hover:scale-105 transition-transform"
               style={{ 
                 backgroundColor: properties.primaryColor || primaryColor, 
                 color: '#ffffff' 
@@ -181,7 +241,7 @@ export const HeroWithSocial = ({ preview = false, properties = {} }: HeroProps) 
   );
 };
 
-// Hero con fondo de imagen - SIMPLIFICADO (ya que todas pueden tener fondo)
+// Hero con fondo de imagen - SIMPLIFICADO
 export const HeroWithBackground = ({ preview = false, properties = {} }: HeroProps) => {
   const {
     title = "Transformando ideas en experiencias digitales",
@@ -216,10 +276,11 @@ export const HeroWithBackground = ({ preview = false, properties = {} }: HeroPro
             {properties.description || description}
           </p>
           
-          {(properties.showButton !== undefined ? properties.showButton : showButton) && (
+          {(properties.showButton !== undefined ? properties.showButton : showButton) && !preview && (
             <div className="flex gap-4 flex-wrap">
               <button 
-                className="px-8 py-4 rounded-lg font-medium flex items-center gap-2"
+                onClick={scrollToProjects}
+                className="px-8 py-4 rounded-lg font-medium flex items-center gap-2 cursor-pointer hover:scale-105 transition-transform"
                 style={{ 
                   backgroundColor: properties.primaryColor || primaryColor, 
                   color: '#ffffff' 
@@ -348,10 +409,11 @@ export const HeroWithProfile = ({ preview = false, properties = {} }: HeroProps)
           {properties.description || description}
         </p>
 
-        {(properties.showButton !== undefined ? properties.showButton : showButton) && (
+        {(properties.showButton !== undefined ? properties.showButton : showButton) && !preview && (
           <div className="flex items-center justify-center gap-4 mb-8">
             <button 
-              className="px-8 py-3 rounded-lg font-medium"
+              onClick={scrollToProjects}
+              className="px-8 py-3 rounded-lg font-medium cursor-pointer hover:scale-105 transition-transform"
               style={{ 
                 backgroundColor: properties.primaryColor || primaryColor, 
                 color: '#ffffff' 
@@ -424,9 +486,10 @@ export const HeroSplitScreen = ({ preview = false, properties = {} }: HeroProps)
             {properties.description || description}
           </p>
           
-          {(properties.showButton !== undefined ? properties.showButton : showButton) && (
+          {(properties.showButton !== undefined ? properties.showButton : showButton) && !preview && (
             <button 
-              className="px-8 py-4 rounded-lg font-medium"
+              onClick={scrollToProjects}
+              className="px-8 py-4 rounded-lg font-medium cursor-pointer hover:scale-105 transition-transform"
               style={{ 
                 backgroundColor: properties.primaryColor || primaryColor, 
                 color: '#000000' 

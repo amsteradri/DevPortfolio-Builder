@@ -122,19 +122,10 @@ const SortableBlock: React.FC<{
 
   return (
     <div 
-      draggable
+      data-id={id}
+      data-component-type={componentType}
+      className={`relative group ${isSelected ? 'ring-2 ring-blue-500' : ''} ${isDragging ? 'opacity-50' : ''}`}
       onClick={handleClick}
-      onDragStart={(e) => {
-        setIsDragging(true);
-        e.dataTransfer.setData('text/plain', id);
-        e.dataTransfer.effectAllowed = 'move';
-      }}
-      onDragEnd={() => setIsDragging(false)}
-      className={`group relative cursor-pointer transition-all ${
-        isDragging ? 'opacity-50' : ''
-      } ${
-        isSelected ? 'ring-2 ring-blue-500 ring-offset-2' : 'hover:ring-1 hover:ring-gray-300'
-      }`}
     >
       {/* Controles del bloque */}
       <div className={`absolute top-2 right-2 transition-opacity z-10 flex items-center gap-2 bg-white dark:bg-gray-800 shadow-lg rounded-lg px-3 py-2 ${
@@ -142,7 +133,7 @@ const SortableBlock: React.FC<{
       }`}>
         <GripHorizontal size={16} className="text-gray-400 cursor-grab" />
         <span className="text-xs uppercase font-semibold text-gray-500 dark:text-gray-400">
-          {`${componentData?.name} - ${componentData?.variants[parseInt(variantIndex)]?.name}`}
+          {componentData?.name}
         </span>
         <button
           onClick={(e) => {
@@ -608,262 +599,142 @@ const PropertiesPanel: React.FC<{
         </>
       ))}
 
-      {/* Gestión de Proyectos */}
-      {(componentType === 'projects') && renderPropertySection("📋 Gestión de Proyectos", (
-        <>
-          <div className="space-y-4">
-            {/* Lista de proyectos actuales */}
-            {currentProperties.projects && currentProperties.projects.length > 0 ? (
-              currentProperties.projects.map((project: any, index: number) => (
-                <div key={index} className="border rounded-lg p-4 space-y-3 bg-gray-50 dark:bg-gray-800">
-                  <div className="flex items-center justify-between">
-                    <h4 className="font-medium text-gray-900 dark:text-white">Proyecto {index + 1}</h4>
-                    <button
-                      onClick={() => {
+      {/* Proyectos específicos para Projects - NUEVA SECCIÓN */}
+      {(componentType === 'projects') && renderPropertySection("🚀 Gestión de Proyectos", (
+        <div className="space-y-4">
+          {/* Lista de proyectos */}
+          {currentProperties.projects && currentProperties.projects.length > 0 ? (
+            currentProperties.projects.map((project: any, index: number) => (
+              <div key={index} className="border rounded-lg p-4 space-y-3 bg-gray-50 dark:bg-gray-800">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-medium text-gray-900 dark:text-white">Proyecto {index + 1}</h4>
+                  <button
+                    onClick={() => {
+                      const newProjects = [...currentProperties.projects];
+                      newProjects.splice(index, 1);
+                      updateProperty('projects', newProjects);
+                    }}
+                    className="text-red-500 hover:text-red-700 text-sm px-2 py-1 rounded"
+                  >
+                    Eliminar
+                  </button>
+                </div>
+                
+                <div className="space-y-3">
+                  <input
+                    type="text"
+                    value={project.title || ''}
+                    onChange={(e) => {
+                      const newProjects = [...currentProperties.projects];
+                      newProjects[index] = { ...newProjects[index], title: e.target.value };
+                      updateProperty('projects', newProjects);
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                    placeholder="Título del proyecto"
+                  />
+                  
+                  <textarea
+                    value={project.description || ''}
+                    onChange={(e) => {
+                      const newProjects = [...currentProperties.projects];
+                      newProjects[index] = { ...newProjects[index], description: e.target.value };
+                      updateProperty('projects', newProjects);
+                    }}
+                    rows={2}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                    placeholder="Descripción del proyecto"
+                  />
+                  
+                  <input
+                    type="url"
+                    value={project.image || ''}
+                    onChange={(e) => {
+                      const newProjects = [...currentProperties.projects];
+                      newProjects[index] = { ...newProjects[index], image: e.target.value };
+                      updateProperty('projects', newProjects);
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                    placeholder="URL de la imagen"
+                  />
+                  
+                  <div className="grid grid-cols-2 gap-2">
+                    <input
+                      type="url"
+                      value={project.demoLink || ''}
+                      onChange={(e) => {
                         const newProjects = [...currentProperties.projects];
-                        newProjects.splice(index, 1);
+                        newProjects[index] = { ...newProjects[index], demoLink: e.target.value };
                         updateProperty('projects', newProjects);
                       }}
-                      className="text-red-500 hover:text-red-700 text-sm px-2 py-1 rounded"
-                    >
-                      Eliminar
-                    </button>
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                      placeholder="Link demo"
+                    />
+                    
+                    <input
+                      type="url"
+                      value={project.githubLink || ''}
+                      onChange={(e) => {
+                        const newProjects = [...currentProperties.projects];
+                        newProjects[index] = { ...newProjects[index], githubLink: e.target.value };
+                        updateProperty('projects', newProjects);
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                      placeholder="Link GitHub"
+                    />
                   </div>
                   
-                  {/* Título del proyecto */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Título
-                    </label>
-                    <input
-                      type="text"
-                      value={project.title || ''}
-                      onChange={(e) => {
-                        const newProjects = [...currentProperties.projects];
-                        newProjects[index] = { ...newProjects[index], title: e.target.value };
-                        updateProperty('projects', newProjects);
-                      }}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
-                      placeholder="Nombre del proyecto"
-                    />
-                  </div>
-
-                  {/* Descripción del proyecto */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Descripción
-                    </label>
-                    <textarea
-                      value={project.description || ''}
-                      onChange={(e) => {
-                        const newProjects = [...currentProperties.projects];
-                        newProjects[index] = { ...newProjects[index], description: e.target.value };
-                        updateProperty('projects', newProjects);
-                      }}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm resize-none"
-                      rows={2}
-                      placeholder="Descripción del proyecto"
-                    />
-                  </div>
-
-                  {/* Imagen del proyecto */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Imagen
-                    </label>
-                    <div className="space-y-2">
-                      <input
-                        type="url"
-                        value={project.image || ''}
-                        onChange={(e) => {
-                          const newProjects = [...currentProperties.projects];
-                          newProjects[index] = { ...newProjects[index], image: e.target.value };
-                          updateProperty('projects', newProjects);
-                        }}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
-                        placeholder="URL de la imagen"
-                      />
-                      <div className="relative">
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) {
-                              const reader = new FileReader();
-                              reader.onload = (e) => {
-                                const imageUrl = e.target?.result as string;
-                                const newProjects = [...currentProperties.projects];
-                                newProjects[index] = { ...newProjects[index], image: imageUrl };
-                                updateProperty('projects', newProjects);
-                              };
-                              reader.readAsDataURL(file);
-                            }
-                          }}
-                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                        />
-                        <div className="border border-dashed border-gray-300 dark:border-gray-600 rounded p-2 text-center hover:border-gray-400 dark:hover:border-gray-500 transition-colores">
-                          <Upload size={14} className="mx-auto mb-1 text-gray-400" />
-                          <span className="text-xs text-gray-600 dark:text-gray-400">
-                            Subir imagen
-                          </span>
-                        </div>
-                      </div>
-                      {project.image && (
-                        <img 
-                          src={project.image} 
-                          alt="Preview" 
-                          className="w-full h-20 object-cover rounded border"
-                          onError={(e) => e.currentTarget.style.display = 'none'
-                          }
-                        />
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Tecnologías */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Tecnologías
-                    </label>
-                    <input
-                      type="text"
-                      value={project.technologies ? project.technologies.join(', ') : ''}
-                      onChange={(e) => {
-                        const techArray = e.target.value.split(',').map(tech => tech.trim()).filter(tech => tech);
-                        const newProjects = [...currentProperties.projects];
-                        newProjects[index] = { ...newProjects[index], technologies: techArray };
-                        updateProperty('projects', newProjects);
-                      }}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
-                      placeholder="React, Node.js, MongoDB (separadas por comas)"
-                    />
-                    {project.technologies && project.technologies.length > 0 && (
-                      <div className="mt-2 flex flex-wrap gap-1">
-                        {project.technologies.map((tech: string, techIndex: number) => (
-                          <span 
-                            key={techIndex}
-                            className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs rounded"
-                          >
-                            {tech}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Enlaces */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Demo
-                      </label>
-                      <input
-                        type="url"
-                        value={project.demoLink || ''}
-                        onChange={(e) => {
-                          const newProjects = [...currentProperties.projects];
-                          newProjects[index] = { ...newProjects[index], demoLink: e.target.value };
-                          updateProperty('projects', newProjects);
-                        }}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
-                        placeholder="https://demo.com"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        GitHub
-                      </label>
-                      <input
-                        type="url"
-                        value={project.githubLink || ''}
-                        onChange={(e) => {
-                          const newProjects = [...currentProperties.projects];
-                          newProjects[index] = { ...newProjects[index], githubLink: e.target.value };
-                          updateProperty('projects', newProjects);
-                        }}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
-                        placeholder="https://github.com/..."
-                      />
-                    </div>
-                  </div>
-
-                  {/* Fecha y Featured */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Fecha
-                      </label>
-                      <input
-                        type="text"
-                        value={project.date || ''}
-                        onChange={(e) => {
-                          const newProjects = [...currentProperties.projects];
-                          newProjects[index] = { ...newProjects[index], date: e.target.value };
-                          updateProperty('projects', newProjects);
-                        }}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
-                        placeholder="2024"
-                      />
-                    </div>
-                    <div className="flex items-center">
-                      <label className="flex items-center">
-                        <input
-                          type="checkbox"
-                          checked={project.featured || false}
-                          onChange={(e) => {
-                            const newProjects = [...currentProperties.projects];
-                            newProjects[index] = { ...newProjects[index], featured: e.target.checked };
-                            updateProperty('projects', newProjects);
-                          }}
-                          className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 dark:border-gray-600"
-                        />
-                        <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Destacado</span>
-                      </label>
-                    </div>
-                  </div>
+                  <input
+                    type="text"
+                    value={project.technologies ? project.technologies.join(', ') : ''}
+                    onChange={(e) => {
+                      const techArray = e.target.value.split(',').map(tech => tech.trim()).filter(tech => tech.length > 0);
+                      const newProjects = [...currentProperties.projects];
+                      newProjects[index] = { ...newProjects[index], technologies: techArray };
+                      updateProperty('projects', newProjects);
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                    placeholder="Tecnologías (separadas por comas)"
+                  />
                 </div>
-              ))
-            ) : (
-              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                No hay proyectos añadidos aún
               </div>
-            )}
-            
-            {/* Botón para añadir proyecto */}
-            <button
-              onClick={() => {
-                const newProject = {
-                  title: "Nuevo Proyecto",
-                  description: "Descripción del proyecto",
-                  image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=250&fit=crop",
-                  technologies: ["React"],
-                  demoLink: "",
-                  githubLink: "",
-                  date: "2024",
-                  featured: false
-                };
-                const currentProjects = currentProperties.projects || [];
-                updateProperty('projects', [...currentProjects, newProject]);
-              }}
-              className="w-full py-3 px-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg text-gray-600 dark:text-gray-400 hover:border-gray-400 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center justify-center gap-2"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-              Añadir Proyecto
-            </button>
-          </div>
-        </>
+            ))
+          ) : (
+            <div className="text-center py-4 text-gray-500 dark:text-gray-400 text-sm">
+              No hay proyectos agregados aún
+            </div>
+          )}
+          
+          {/* Botón para añadir proyecto */}
+          <button
+            onClick={() => {
+              const newProject = {
+                title: "Nuevo Proyecto",
+                description: "Descripción del proyecto",
+                image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&h=250&fit=crop",
+                technologies: ["React", "Node.js"],
+                demoLink: "https://ejemplo.com",
+                githubLink: "https://github.com"
+              };
+              const currentProjects = currentProperties.projects || [];
+              updateProperty('projects', [...currentProjects, newProject]);
+            }}
+            className="w-full py-3 px-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg text-gray-600 dark:text-gray-400 hover:border-gray-400 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colores flex items-center justify-center gap-2 text-sm"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            Añadir Proyecto
+          </button>
+        </div>
       ))}
 
-      {/* Opciones de Visualización - Projects */}
-      {(componentType === 'projects') && renderPropertySection("👁️ Mostrar/Ocultar", (
-        <>
-          {renderCheckbox("Mostrar tecnologías", "showTechnologies")}
-          {renderCheckbox("Mostrar enlaces", "showLinks")}
-          {renderCheckbox("Mostrar fechas", "showDate")}
-        </>
+      {/* Opciones de visualización específicas para Projects - NUEVA SECCIÓN */}
+      {(componentType === 'projects') && renderPropertySection("👁️ Opciones de Visualización", (
+        <div className="space-y-4">
+          {renderCheckbox("Mostrar Tecnologías", "showTechnologies", true)}
+          {renderCheckbox("Mostrar Enlaces", "showLinks", true)}
+          {renderCheckbox("Mostrar Fechas", "showDate", true)}
+        </div>
       ))}
 
       {/* Imágenes específicas para About - NUEVA SECCIÓN */}
@@ -1098,14 +969,45 @@ export default function VisualWebEditor() {
   const [projectName, setProjectName] = useState('');
   const [blocks, setBlocks] = useState<string[]>([]);
   const [draggedItem, setDraggedItem] = useState<ComponentType | null>(null);
-  const [sidebarWidth, setSidebarWidth] = useState(600); // ancho inicial en px
+  const [sidebarWidth, setSidebarWidth] = useState(600);
   const [isResizing, setIsResizing] = useState(false);
-  const [zoom, setZoom] = useState(100); // zoom en porcentaje
-
-  // Añade estos nuevos estados al componente principal
+  const [zoom, setZoom] = useState(100);
   const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
   const [isPropertiesPanelOpen, setIsPropertiesPanelOpen] = useState(false);
   const [blockProperties, setBlockProperties] = useState<{[key: string]: any}>({});
+
+  // Función para guardar el estado del proyecto
+  const saveProjectState = () => {
+    const projectState = {
+      projectName,
+      blocks,
+      blockProperties,
+      lastUpdated: new Date().toISOString()
+    };
+    localStorage.setItem('devportfolio-project', JSON.stringify(projectState));
+  };
+
+  // Cargar estado del proyecto al inicializar
+  useEffect(() => {
+    const savedProject = localStorage.getItem('devportfolio-project');
+    if (savedProject) {
+      try {
+        const projectState = JSON.parse(savedProject);
+        setProjectName(projectState.projectName || '');
+        setBlocks(projectState.blocks || []);
+        setBlockProperties(projectState.blockProperties || {});
+      } catch (error) {
+        console.error('Error loading project state:', error);
+      }
+    }
+  }, []);
+
+  // Guardar automáticamente cuando cambie algún estado
+  useEffect(() => {
+    if (!isOpen) { // Solo guardar después de que se haya iniciado el proyecto
+      saveProjectState();
+    }
+  }, [projectName, blocks, blockProperties, isOpen]);
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>, type: ComponentType) => {
     setDraggedItem(type);
@@ -1225,6 +1127,16 @@ export default function VisualWebEditor() {
     }));
   };
 
+  // Función para abrir la previsualización
+  const openPreview = () => {
+    // Asegurarse de que los datos estén guardados antes de abrir
+    saveProjectState();
+    
+    // Abrir la ventana de previsualización
+    const previewUrl = '/preview';
+    window.open(previewUrl, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
+  };
+
   const handleClosePropertiesPanel = () => {
     setSelectedBlockId(null);
     setIsPropertiesPanelOpen(false);
@@ -1273,7 +1185,7 @@ export default function VisualWebEditor() {
 
       {/* Editor principal */}
       {!isOpen && (
-        <div className="flex h-screen"> {/* Contenedor principal con altura de pantalla completa */}
+        <div className="flex h-screen">
           
           {/* COLUMNA 1: Sidebar de componentes */}
           <aside 
@@ -1316,12 +1228,25 @@ export default function VisualWebEditor() {
           <section className="flex-1 h-screen flex flex-col">
             {/* Header del proyecto - FIJO */}
             <header className="flex-shrink-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-6">
-              <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
-                {projectName}
-              </h1>
-              <p className="text-gray-600 dark:text-gray-400 mt-1">
-                {blocks.length} componentes añadidos
-              </p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
+                    {projectName}
+                  </h1>
+                  <p className="text-gray-600 dark:text-gray-400 mt-1">
+                    {blocks.length} componentes añadidos
+                  </p>
+                </div>
+                
+                {/* Botón de previsualización */}
+                <button
+                  onClick={openPreview}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+                >
+                  <Eye size={18} />
+                  Vista Previa
+                </button>
+              </div>
             </header>
 
             {/* Canvas del editor con scroll INDEPENDIENTE */}
@@ -1388,7 +1313,7 @@ export default function VisualWebEditor() {
                     transform: `scale(${zoom / 100})`,
                     transformOrigin: 'top center',
                     width: '100%',
-                    maxWidth: isPropertiesPanelOpen ? '1200px' : '1800px', // Aumentado de 900px/1200px a 1200px/1500px
+                    maxWidth: isPropertiesPanelOpen ? '1200px' : '1800px',
                     margin: '0 auto',
                     minHeight: 'calc(100vh - 120px)',
                     background: 'white',

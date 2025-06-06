@@ -103,14 +103,24 @@ export const ProjectsGrid = ({ preview = false, properties = {} }: ProjectsProps
                 {(properties.showLinks !== undefined ? properties.showLinks : showLinks) && (
                   <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-3">
                     {project.demoLink && (
-                      <a href={project.demoLink} target="_blank" rel="noopener noreferrer" 
-                         className="p-2 bg-white rounded-full hover:bg-gray-100 transition-colors">
+                      <a 
+                        href={project.demoLink} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="p-2 bg-white rounded-full hover:bg-gray-100 transition-colors"
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <ExternalLink size={20} style={{ color: properties.primaryColor || primaryColor }} />
                       </a>
                     )}
                     {project.githubLink && (
-                      <a href={project.githubLink} target="_blank" rel="noopener noreferrer"
-                         className="p-2 bg-white rounded-full hover:bg-gray-100 transition-colors">
+                      <a 
+                        href={project.githubLink} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="p-2 bg-white rounded-full hover:bg-gray-100 transition-colors"
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <Github size={20} style={{ color: properties.textColor || textColor }} />
                       </a>
                     )}
@@ -251,16 +261,30 @@ export const ProjectsMasonry = ({ preview = false, properties = {} }: ProjectsPr
                 )}
                 {showLinks && (
                   <div className="flex gap-3">
-                    <button 
-                      className="flex-1 py-2 px-4 rounded-lg font-medium text-white flex items-center justify-center gap-2"
-                      style={{ backgroundColor: primaryColor }}
-                    >
-                      <Eye size={16} />
-                      Ver Proyecto
-                    </button>
-                    <button className="p-2 border rounded-lg hover:bg-gray-50 transition-colors">
-                      <Github size={16} style={{ color: textColor }} />
-                    </button>
+                    {project.demoLink && (
+                      <a 
+                        href={project.demoLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-1 py-2 px-4 rounded-lg font-medium text-white flex items-center justify-center gap-2 text-center"
+                        style={{ backgroundColor: primaryColor }}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Eye size={16} />
+                        Ver Proyecto
+                      </a>
+                    )}
+                    {project.githubLink && (
+                      <a 
+                        href={project.githubLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2 border rounded-lg hover:bg-gray-50 transition-colors"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Github size={16} style={{ color: textColor }} />
+                      </a>
+                    )}
                   </div>
                 )}
               </div>
@@ -501,6 +525,7 @@ export const ProjectsHorizontal = ({ preview = false, properties = {} }: Project
                         backgroundColor: primaryColor,
                         color: '#000000'
                       }}
+                      onClick={(e) => e.stopPropagation()}
                     >
                       <Play size={18} />
                       Ver Demo
@@ -513,6 +538,7 @@ export const ProjectsHorizontal = ({ preview = false, properties = {} }: Project
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-2 px-6 py-3 rounded-lg border border-gray-600 hover:bg-gray-800 transition-colors"
                       style={{ color: textColor }}
+                      onClick={(e) => e.stopPropagation()}
                     >
                       <Code size={18} />
                       Ver Código
@@ -602,6 +628,7 @@ export const ProjectsMinimal = ({ preview = false, properties = {} }: ProjectsPr
                     target="_blank"
                     rel="noopener noreferrer"
                     className="ml-8 p-3 rounded-full border border-gray-300 hover:border-gray-400 transition-colors group-hover:translate-x-2 group-hover:scale-110"
+                    onClick={(e) => e.stopPropagation()}
                   >
                     <ArrowRight size={20} style={{ color: primaryColor }} />
                   </a>
