@@ -9,10 +9,8 @@ interface Portfolio {
   name: string;
   content: {
     blocks: string[];
-    blockProperties: { [key: string]: any };
-    lastUpdated: string;
+    blockProperties: Record<string, any>;
   };
-  user_id: number;
   created_at: string;
   updated_at: string;
 }
@@ -20,7 +18,6 @@ interface Portfolio {
 export default function PortfolioView() {
   const params = useParams();
   const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -34,7 +31,6 @@ export default function PortfolioView() {
 
         console.log('🔍 Buscando portfolio:', portfolioName);
 
-        // Intentar cargar desde la nueva API
         const response = await fetch(`http://localhost:8000/portfolio/${encodeURIComponent(portfolioName)}`);
         
         if (!response.ok) {
@@ -53,11 +49,9 @@ export default function PortfolioView() {
         }
         
         setPortfolio(data);
-      } catch (err) {
-        console.error('❌ Error cargando portfolio:', err);
-        setError(err instanceof Error ? err.message : 'Error al cargar el portfolio');
-      } finally {
-        setLoading(false);
+      } catch (error) {
+        console.error('❌ Error cargando portfolio:', error);
+        setError(error instanceof Error ? error.message : 'Error al cargar el portfolio');
       }
     };
 
@@ -66,20 +60,9 @@ export default function PortfolioView() {
     }
   }, [params.name]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">Cargando portfolio...</p>
-        </div>
-      </div>
-    );
-  }
-
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+      <main className="w-full bg-white dark:bg-gray-900 min-h-screen flex items-center justify-center">
         <div className="text-center max-w-md mx-auto p-6">
           <div className="w-16 h-16 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
             <span className="text-2xl">❌</span>
@@ -95,22 +78,23 @@ export default function PortfolioView() {
             Volver al inicio
           </a>
         </div>
-      </div>
+      </main>
     );
   }
 
   if (!portfolio) {
-    return null;
+    return (
+      <main className="w-full bg-white dark:bg-gray-900 min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">Cargando portfolio...</p>
+        </div>
+      </main>
+    );
   }
 
   return (
     <main className="w-full bg-white dark:bg-gray-900">
-      {/* Metadatos en el head */}
-      <head>
-        <title>{portfolio.name} - Portfolio</title>
-        <meta name="description" content={`Portfolio de ${portfolio.name}`} />
-      </head>
-
       {portfolio.content.blocks.map((blockId: string) => {
         const [componentType, variantIndex] = blockId.split('-');
         const componentData = COMPONENTS_MAP[componentType as keyof typeof COMPONENTS_MAP];

@@ -7,7 +7,7 @@ import ClientOnly from '@/components/ClientOnly';
 import { 
   GripHorizontal, Code, Trash2, Eye, ChevronDown,
   ArrowLeft, ArrowRight, Minus, Maximize2, X, Upload,
-  Share2, Copy, Check, ExternalLink
+  Share2, Copy, Check, ExternalLink, ArrowUp, ArrowDown
 } from 'lucide-react';
 import {
   ComponentType,
@@ -1350,6 +1350,17 @@ export default function VisualWebEditor() {
     window.open(generatePublicUrl(), '_blank');
   };
 
+  // 2. Funciones para mover bloques
+  const moveBlock = (from: number, to: number) => {
+    if (to < 0 || to >= blocks.length) return;
+    setBlocks(prev => {
+      const updated = [...prev];
+      const [removed] = updated.splice(from, 1);
+      updated.splice(to, 0, removed);
+      return updated;
+    });
+  };
+
   if (!isMounted || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
@@ -1583,12 +1594,32 @@ export default function VisualWebEditor() {
                     </div>
                   ) : (
                     <div className="space-y-0">
-                      {blocks.map((blockId) => (
+                      {blocks.map((blockId, idx) => (
                         <div 
                           key={blockId} 
                           data-id={blockId}
-                          className="relative"
+                          className="relative group"
                         >
+                          {/* Controles de orden */}
+                          <div className="absolute left-2 top-2 z-20 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                              onClick={() => moveBlock(idx, idx - 1)}
+                              disabled={idx === 0}
+                              className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-full p-1 shadow hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-40"
+                              title="Subir"
+                            >
+                              <ArrowUp size={16} />
+                            </button>
+                            <button
+                              onClick={() => moveBlock(idx, idx + 1)}
+                              disabled={idx === blocks.length - 1}
+                              className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-full p-1 shadow hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-40"
+                              title="Bajar"
+                            >
+                              <ArrowDown size={16} />
+                            </button>
+                          </div>
+                          {/* Bloque original */}
                           <SortableBlock
                             id={blockId}
                             onDelete={deleteBlock}
