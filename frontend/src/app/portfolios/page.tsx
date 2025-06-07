@@ -180,6 +180,15 @@ export default function PortfoliosPage() {
     return portfolio.content?.blocks?.length || 0;
   };
 
+  // Función para generar el slug del portfolio
+  const generatePortfolioSlug = (portfolioName: string) => {
+    return portfolioName.toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .trim();
+  };
+
   // Loading state
   if (userLoading || (isLoading && !hasLoaded.current)) {
     return (
@@ -375,7 +384,9 @@ export default function PortfoliosPage() {
                     </Link>
                     
                     <Link
-                      href={`/preview?portfolio=${portfolio.id}`}
+                      href={`/p/${generatePortfolioSlug(portfolio.name)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg font-medium transition-colors"
                     >
                       <Eye size={16} />
