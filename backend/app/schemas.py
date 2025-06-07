@@ -30,13 +30,17 @@ class User(UserBase):
     class Config:
         from_attributes = True
 
-# Esquemas existentes del Portfolio (actualizados)
+# Esquemas del Portfolio
 class PortfolioBase(BaseModel):
     name: str
-    content: Dict[str, Any]
+    content: Dict[Any, Any]  # Cambiado de dict a Dict[Any, Any] para mayor flexibilidad
 
 class PortfolioCreate(PortfolioBase):
     user_id: Optional[int] = None
+
+class PortfolioUpdate(BaseModel):
+    name: Optional[str] = None
+    content: Optional[Dict[Any, Any]] = None
 
 class Portfolio(PortfolioBase):
     id: int

@@ -269,23 +269,6 @@ const PropertiesPanel: React.FC<{
     </div>
   );
 
-  const renderSlider = (label: string, key: string, min: number, max: number, step: number = 1, defaultValue: number = 50, suffix: string = '') => (
-    <div>
-      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-        {label}: {currentProperties[key] || defaultValue}{suffix}
-      </label>
-      <input
-        type="range"
-        min={min}
-        max={max}
-        step={step}
-        value={currentProperties[key] || defaultValue}
-        onChange={(e) => updateProperty(key, parseInt(e.target.value))}
-        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
-      />
-    </div>
-  );
-
   // Función para manejar la subida de archivos de imagen
   const handleImageUpload = (key: string, file: File) => {
     if (file && file.type.startsWith('image/')) {
@@ -377,7 +360,7 @@ const PropertiesPanel: React.FC<{
   // Retornar SOLO el contenido, sin containers adicionales
   return (
     <>
-      {/* Contenido */}
+      {/* Contenido básico común a todos los componentes */}
       {renderPropertySection("📝 Contenido", (
         <>
           {renderTextInput("Título principal", "title", "Ingresa el título...")}
@@ -385,14 +368,6 @@ const PropertiesPanel: React.FC<{
             renderTextInput("Subtítulo", "subtitle", "Ingresa el subtítulo...")
           }
           {renderTextarea("Descripción", "description", "Describe el contenido...")}
-          {componentType === 'hero' && (
-            <>
-              {renderTextInput("Texto del botón", "buttonText", "Ver más")}
-              {renderCheckbox("Mostrar botón", "showButton")}
-              {renderCheckbox("Mostrar redes sociales", "showSocial")}
-            </>
-          )}
-          {componentType === 'about' && renderCheckbox("Mostrar icono", "showIcon")}
         </>
       ))}
 
@@ -402,8 +377,6 @@ const PropertiesPanel: React.FC<{
           {renderColorInput("Color de fondo", "backgroundColor", "#ffffff")}
           {renderColorInput("Color de texto", "textColor", "#000000")}
           {renderColorInput("Color primario", "primaryColor", "#3b82f6")}
-          {componentType === 'hero' && renderColorInput("Color secundario", "secondaryColor", "#8b5cf6")}
-          {componentType === 'about' && renderColorInput("Color del icono", "iconColor", "#ffffff")}
         </>
       ))}
 
@@ -418,8 +391,6 @@ const PropertiesPanel: React.FC<{
             { value: "text-2xl", label: "2XL" },
             { value: "text-3xl", label: "3XL" },
             { value: "text-4xl", label: "4XL" },
-            { value: "text-4xl md:text-6xl", label: "Hero Grande" },
-            { value: "text-5xl md:text-7xl", label: "Hero Extra Grande" }
           ], "text-base")}
           
           {renderSelectInput("Alineación de texto", "textAlign", [
@@ -987,14 +958,23 @@ export default function VisualWebEditor() {
 
   // Función para guardar el estado del proyecto
   const saveProjectState = async () => {
+    if (!projectName.trim()) {
+      console.log('No project name, skipping save');
+      return;
+    }
+
     const projectState = {
-      name: projectName,
-      blocks,
-      blockProperties,
-      lastUpdated: new Date().toISOString()
+      name: projectName.trim(),
+      content: {
+        blocks,
+        blockProperties,
+        lastUpdated: new Date().toISOString()
+      }
     };
 
     try {
+      console.log('Saving project:', projectState);
+      
       const response = await fetch('http://localhost:8000/portfolio/save/', {
         method: 'POST',
         headers: {
@@ -1004,17 +984,86 @@ export default function VisualWebEditor() {
       });
 
       if (!response.ok) {
-        throw new Error('Error al guardar el portfolio');
+        const errorText = await response.text();
+        console.error('Error response:', errorText);
+        throw new Error(`Error al guardar el portfolio: ${response.status} ${response.statusText}`);
       }
 
       const data = await response.json();
-      console.log('Portfolio guardado:', data);
+      console.log('Portfolio guardado exitosamente:', data);
+      
+      // También guardamos en localStorage como respaldo
+      localStorage.setItem('devportfolio-project', JSON.stringify({
+        projectName: projectName,
+        blocks,
+        blockProperties,
+        lastUpdated: new Date().toISOString()
+      }));
+
     } catch (error) {
-      console.error('Error al guardar:', error);
+      console.error('Error al guardar en el servidor:', error);
+      
+      // Si falla el servidor, al menos guardamos en localStorage
+      try {
+        localStorage.setItem('devportfolio-project', JSON.stringify({
+          projectName: projectName,
+          blocks,
+          blockProperties,
+          lastUpdated: new Date().toISOString()
+        }));
+        console.log('Guardado en localStorage como respaldo');
+      } catch (localError) {
+        console.error('Error guardando en localStorage:', localError);
+      }
+    }
+  };
+
+  // Función para cargar el estado del proyecto
+  const loadProjectState = async () => {
+    if (!projectName.trim()) return;
+
+    try {
+      // Intentar cargar desde el servidor primero
+      const response = await fetch(`http://localhost:8000/portfolio/${projectName.trim()}`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Portfolio cargado desde servidor:', data);
+        
+        if (data.content) {
+          setBlocks(data.content.blocks || []);
+          setBlockProperties(data.content.blockProperties || {});
+        }
+        return;
+      }
+    } catch (error) {
+      console.log('No se pudo cargar desde servidor, intentando localStorage');
     }
 
-    // También guardamos en localStorage como respaldo
-    localStorage.setItem('devportfolio-project', JSON.stringify(projectState));
+    // Fallback a localStorage
+    try {
+      const savedProject = localStorage.getItem('devportfolio-project');
+      if (savedProject) {
+        const projectState = JSON.parse(savedProject);
+        if (projectState.projectName === projectName) {
+          setBlocks(projectState.blocks || []);
+          setBlockProperties(projectState.blockProperties || {});
+          console.log('Portfolio cargado desde localStorage');
+        }
+      }
+    } catch (error) {
+      console.error('Error loading from localStorage:', error);
+    }
+  };
+
+  // Función para abrir la previsualización (ÚNICA DECLARACIÓN)
+  const openPreview = async () => {
+    // Asegurarse de que los datos estén guardados antes de abrir
+    await saveProjectState();
+    
+    // Abrir en una nueva pestaña
+    const previewUrl = `/preview?project=${encodeURIComponent(projectName)}`;
+    window.open(previewUrl, '_blank');
   };
 
   // Cargar estado del proyecto al inicializar
@@ -1034,8 +1083,12 @@ export default function VisualWebEditor() {
 
   // Guardar automáticamente cuando cambie algún estado
   useEffect(() => {
-    if (!isOpen) { // Solo guardar después de que se haya iniciado el proyecto
-      saveProjectState();
+    if (!isOpen && projectName.trim()) {
+      const timeoutId = setTimeout(() => {
+        saveProjectState();
+      }, 1000); // Debounce de 1 segundo
+
+      return () => clearTimeout(timeoutId);
     }
   }, [projectName, blocks, blockProperties, isOpen]);
 
@@ -1144,7 +1197,7 @@ export default function VisualWebEditor() {
     }
   };
 
-  // Añade estas funciones al componente principal
+  // Funciones del panel de propiedades
   const handleBlockSelect = (blockId: string) => {
     setSelectedBlockId(blockId);
     setIsPropertiesPanelOpen(true);
@@ -1155,16 +1208,6 @@ export default function VisualWebEditor() {
       ...prev,
       [blockId]: properties
     }));
-  };
-
-  // Función para abrir la previsualización
-  const openPreview = () => {
-    // Asegurarse de que los datos estén guardados antes de abrir
-    saveProjectState();
-    
-    // Abrir la ventana de previsualización con la URL del portfolio
-    const previewUrl = `/p/${projectName.toLowerCase().replace(/\s+/g, '-')}`;
-    window.open(previewUrl, '_blank');
   };
 
   const handleClosePropertiesPanel = () => {
@@ -1205,9 +1248,11 @@ export default function VisualWebEditor() {
             <button
               disabled={!projectName.trim()}
               className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 disabled:from-gray-400 disabled:to-gray-500 text-white px-8 py-3 rounded-xl w-full font-semibold transition-all transform hover:scale-105 disabled:scale-100"
-              onClick={() => {
+              onClick={async () => {
                 clearProjectState();
                 setIsOpen(false);
+                // Cargar proyecto existente si existe
+                await loadProjectState();
               }}
             >
               Comenzar a crear
@@ -1274,7 +1319,7 @@ export default function VisualWebEditor() {
                 {/* Botón de previsualización */}
                 <button
                   onClick={openPreview}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colores"
                 >
                   <Eye size={18} />
                   Vista Previa

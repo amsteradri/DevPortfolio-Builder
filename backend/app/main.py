@@ -51,23 +51,65 @@ def health_check():
 
 @app.post("/portfolio/save/", response_model=schemas.Portfolio)
 def save_portfolio(portfolio: schemas.PortfolioCreate, db: Session = Depends(database.get_db)):
-    existing_portfolio = db.query(models.Portfolio).filter(models.Portfolio.name == portfolio.name).first()
+    """Guardar o actualizar un portfolio"""
+    print(f"Saving portfolio: {portfolio.name}")
     
-    if existing_portfolio:
-        existing_portfolio.content = portfolio.content
-        db.commit()
-        db.refresh(existing_portfolio)
-        return existing_portfolio
-    else:
-        db_portfolio = models.Portfolio(**portfolio.dict())
-        db.add(db_portfolio)
-        db.commit()
-        db.refresh(db_portfolio)
-        return db_portfolio
+    try:
+        # Verificar si ya existe un portfolio con ese nombre
+        existing_portfolio = db.query(models.Portfolio).filter(
+            models.Portfolio.name == portfolio.name
+        ).first()
+        
+        if existing_portfolio:
+            print(f"Updating existing portfolio: {existing_portfolio.id}")
+            # Actualizar portfolio existente
+            existing_portfolio.content = portfolio.content
+            db.commit()
+            db.refresh(existing_portfolio)
+            return existing_portfolio
+        else:
+            print(f"Creating new portfolio: {portfolio.name}")
+            # Crear nuevo portfolio
+            db_portfolio = models.Portfolio(
+                name=portfolio.name,
+                content=portfolio.content,
+                user_id=portfolio.user_id
+            )
+            db.add(db_portfolio)
+            db.commit()
+            db.refresh(db_portfolio)
+            return db_portfolio
+            
+    except Exception as e:
+        print(f"Error saving portfolio: {e}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Error al guardar el portfolio: {str(e)}")
 
 @app.get("/portfolio/{name}")
 def get_portfolio(name: str, db: Session = Depends(database.get_db)):
-    portfolio = db.query(models.Portfolio).filter(models.Portfolio.name == name).first()
-    if portfolio is None:
-        raise HTTPException(status_code=404, detail="Portfolio not found")
-    return portfolio
+    """Obtener un portfolio por nombre"""
+    try:
+        portfolio = db.query(models.Portfolio).filter(
+            models.Portfolio.name == name
+        ).first()
+        
+        if portfolio is None:
+            raise HTTPException(status_code=404, detail="Portfolio not found")
+        
+        return portfolio
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error getting portfolio: {e}")
+        raise HTTPException(status_code=500, detail="Error al obtener el portfolio")
+
+@app.get("/portfolios/")
+def list_portfolios(db: Session = Depends(database.get_db)):
+    """Listar todos los portfolios"""
+    try:
+        portfolios = db.query(models.Portfolio).all()
+        return portfolios
+    except Exception as e:
+        print(f"Error listing portfolios: {e}")
+        raise HTTPException(status_code=500, detail="Error al listar portfolios")
