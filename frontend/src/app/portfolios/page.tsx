@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Plus, 
@@ -10,14 +10,12 @@ import {
   Eye, 
   Calendar,
   User,
-  ArrowRight,
   Search,
-  Filter,
-  MoreVertical,
-  ExternalLink
+  MoreVertical
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useUser } from '@/contexts/UserContext';
 
 interface Portfolio {
   id: number;
@@ -32,53 +30,64 @@ interface Portfolio {
   updated_at: string;
 }
 
-interface User {
-  id: number;
-  name: string;
-  email: string;
-  picture?: string;
-}
-
 export default function PortfoliosPage() {
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
-  const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newPortfolioName, setNewPortfolioName] = useState('');
   const [activeDropdown, setActiveDropdown] = useState<number | null>(null);
+  const hasLoaded = useRef(false); // Ref para evitar múltiples cargas
   const router = useRouter();
+  const { user, isLoading: userLoading } = useUser();
 
-  useEffect(() => {
-    // Verificar si hay usuario logueado
-    const savedUser = localStorage.getItem('user');
-    if (!savedUser) {
-      router.push('/login');
-      return;
-    }
-
-    const userData = JSON.parse(savedUser);
-    setUser(userData);
-    fetchPortfolios(userData.id);
-  }, [router]);
-
+  // Función para fetch portfolios
   const fetchPortfolios = async (userId: number) => {
+    if (hasLoaded.current) return; // Evitar múltiples llamadas
+    
+    console.log('PortfoliosPage: Fetching portfolios for user:', userId);
+    setIsLoading(true);
+    
     try {
       const response = await fetch(`http://localhost:8000/api/portfolios/user/${userId}`);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('PortfoliosPage: Loaded', data.length, 'portfolios');
         setPortfolios(data);
+        setError(null);
+        hasLoaded.current = true;
       } else {
-        console.error('Error fetching portfolios');
-        setPortfolios([]);
+        console.error('PortfoliosPage: Error response:', response.status);
+        setError('Error al cargar portfolios');
       }
     } catch (error) {
-      console.error('Error:', error);
-      setPortfolios([]);
+      console.error('PortfoliosPage: Fetch error:', error);
+      setError('Error de conexión');
     } finally {
       setIsLoading(false);
     }
   };
+
+  // Effect para cargar portfolios
+  useEffect(() => {
+    if (userLoading) {
+      console.log('PortfoliosPage: User still loading...');
+      return;
+    }
+
+    if (!user) {
+      console.log('PortfoliosPage: No user, redirecting to login');
+      router.replace('/login');
+      return;
+    }
+
+    if (user.id && !hasLoaded.current) {
+      console.log('PortfoliosPage: Loading portfolios for user:', user.id);
+      fetchPortfolios(user.id);
+    }
+  }, [user, userLoading, router]);
 
   const createPortfolio = async () => {
     if (!newPortfolioName.trim() || !user) return;
@@ -105,8 +114,6 @@ export default function PortfoliosPage() {
         setPortfolios(prev => [newPortfolio, ...prev]);
         setNewPortfolioName('');
         setShowCreateModal(false);
-        
-        // Redirigir al editor con el nuevo portfolio
         router.push(`/editor?portfolio=${newPortfolio.id}`);
       } else {
         const errorData = await response.json();
@@ -173,17 +180,49 @@ export default function PortfoliosPage() {
     return portfolio.content?.blocks?.length || 0;
   };
 
-  if (isLoading) {
+  // Loading state
+  if (userLoading || (isLoading && !hasLoaded.current)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-300">
-            Cargando portfolios...
+            Cargando...
           </h2>
         </div>
       </div>
     );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span className="text-2xl">❌</span>
+          </div>
+          <h2 className="text-xl font-semibold text-red-600 dark:text-red-400 mb-2">
+            {error}
+          </h2>
+          <button
+            onClick={() => {
+              setError(null);
+              hasLoaded.current = false;
+              if (user?.id) fetchPortfolios(user.id);
+            }}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+          >
+            Reintentar
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // No user state
+  if (!user) {
+    return null;
   }
 
   return (
@@ -202,20 +241,18 @@ export default function PortfoliosPage() {
             </div>
 
             <div className="flex items-center gap-4">
-              {user && (
-                <div className="flex items-center gap-3">
-                  {user.picture && (
-                    <img 
-                      src={user.picture} 
-                      alt="Profile" 
-                      className="w-8 h-8 rounded-full"
-                    />
-                  )}
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
-                    {user.name}
-                  </span>
-                </div>
-              )}
+              <div className="flex items-center gap-3">
+                {user.picture && (
+                  <img 
+                    src={user.picture} 
+                    alt="Profile" 
+                    className="w-8 h-8 rounded-full"
+                  />
+                )}
+                <span className="text-sm text-gray-600 dark:text-gray-400">
+                  {user.name}
+                </span>
+              </div>
 
               <button
                 onClick={() => setShowCreateModal(true)}
@@ -230,7 +267,7 @@ export default function PortfoliosPage() {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Barra de búsqueda y filtros */}
+        {/* Barra de búsqueda */}
         <div className="flex items-center gap-4 mb-8">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
@@ -279,7 +316,6 @@ export default function PortfoliosPage() {
                 transition={{ duration: 0.5, delay: index * 0.1 }}
                 className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-200 overflow-hidden group"
               >
-                {/* Header de la tarjeta */}
                 <div className="p-6 pb-4">
                   <div className="flex items-start justify-between mb-4">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white line-clamp-2">
@@ -328,7 +364,6 @@ export default function PortfoliosPage() {
                   </div>
                 </div>
 
-                {/* Footer de la tarjeta */}
                 <div className="px-6 py-4 bg-gray-50 dark:bg-gray-700/50 border-t border-gray-200 dark:border-gray-600">
                   <div className="flex items-center gap-3">
                     <Link 

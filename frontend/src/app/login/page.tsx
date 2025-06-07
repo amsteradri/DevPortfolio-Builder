@@ -4,35 +4,20 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { LogIn, User, Mail, ArrowRight, Chrome } from "lucide-react";
 import Link from "next/link";
+import { useUser } from "@/contexts/UserContext";
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
-  const [user, setUser] = useState<any>(null);
-
-  useEffect(() => {
-    // Verificar si hay usuario logueado
-    const savedUser = localStorage.getItem("user");
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
-    }
-  }, []);
+  const { user, logout } = useUser();
 
   const handleGoogleLogin = async () => {
     setIsLoading(true);
     try {
-      // Redirigir al backend para iniciar OAuth
       window.location.href = "http://localhost:8000/auth/login";
     } catch (error) {
       console.error("Error al iniciar sesión:", error);
       setIsLoading(false);
     }
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem("user");
-    setUser(null);
-    // Opcional: llamar al endpoint de logout del backend
-    window.location.href = "http://localhost:8000/auth/logout";
   };
 
   if (user) {
@@ -71,19 +56,19 @@ export default function LoginPage() {
           </div>
 
           <div className="space-y-4 pt-4">
-            <Link href="/editor">
+            <Link href="/portfolios">
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-3 rounded-xl font-semibold transition-all flex items-center justify-center gap-2"
               >
-                Ir al Editor
+                Ir a Mis Portfolios
                 <ArrowRight size={18} />
               </motion.button>
             </Link>
 
             <button
-              onClick={handleLogout}
+              onClick={logout}
               className="w-full border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 px-6 py-3 rounded-xl font-medium transition-all"
             >
               Cerrar Sesión
