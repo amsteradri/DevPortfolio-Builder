@@ -23,6 +23,9 @@ export default function RootLayout({
           <Navbar />
           {children}
         </UserProvider>
+        <footer className="bg-gray-800 text-gray-400 py-4 text-center text-sm">
+          © {new Date().getFullYear()} DevPortfolio Builder &mdash; Adrián Gutiérrez Segovia
+        </footer>
       </body>
     </html>
   );
