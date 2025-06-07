@@ -2,10 +2,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import Link from 'next/link'; // ← Agregar esta importación
+import Link from 'next/link';
+import ClientOnly from '@/components/ClientOnly';
 import { 
   GripHorizontal, Code, Trash2, Eye, ChevronDown,
-  ArrowLeft, ArrowRight, Minus, Maximize2, X, Upload 
+  ArrowLeft, ArrowRight, Minus, Maximize2, X, Upload,
+  Share2, Copy, Check, ExternalLink
 } from 'lucide-react';
 import {
   ComponentType,
@@ -121,6 +123,9 @@ const SortableBlock: React.FC<{
     e.stopPropagation();
     onSelect(id);
   };
+
+  // Usar el ID como base para evitar IDs dinámicos
+  const blockId = `block-${id}`;
 
   return (
     <div 
@@ -956,6 +961,18 @@ export default function VisualWebEditor() {
   const [isPropertiesPanelOpen, setIsPropertiesPanelOpen] = useState(false);
   const [blockProperties, setBlockProperties] = useState<{[key: string]: any}>({});
 
+  // Nuevo estado para el modal de compartir
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
+
+  // Nuevo estado para controlar la hidratación
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Effect para manejar la hidratación
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   // Función para crear un hash de los datos para comparar cambios
   const createDataHash = () => {
     return JSON.stringify({
@@ -1180,12 +1197,14 @@ export default function VisualWebEditor() {
     if (draggedItem) {
       try {
         const dragData = JSON.parse(e.dataTransfer.getData('text/plain'));
-        // Crear el ID incluyendo el tipo y la variante
-        const newBlock = `${dragData.type}-${dragData.variantIndex}-${Date.now()}`;
+        // Usar timestamp estable al renderizar, no dinámico
+        const timestamp = Date.now();
+        const newBlock = `${dragData.type}-${dragData.variantIndex}-${timestamp}`;
         setBlocks(prev => [...prev, newBlock]);
       } catch {
         // Fallback por si no hay datos de variante
-        const newBlock = `${draggedItem}-0-${Date.now()}`;
+        const timestamp = Date.now();
+        const newBlock = `${draggedItem}-0-${timestamp}`;
         setBlocks(prev => [...prev, newBlock]);
       }
       setDraggedItem(null);
@@ -1287,7 +1306,51 @@ export default function VisualWebEditor() {
     setIsPropertiesPanelOpen(false);
   };
 
-  if (isLoading) {
+  // Función para generar el enlace público (solo en cliente)
+  const generatePublicUrl = () => {
+    if (typeof window === 'undefined') return '';
+    
+    const portfolioSlug = projectName.toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '') // remover caracteres especiales
+      .replace(/\s+/g, '-') // espacios a guiones
+      .replace(/-+/g, '-') // múltiples guiones a uno
+      .trim();
+    
+    return `${window.location.origin}/p/${portfolioSlug}`;
+  };
+
+  // Función para copiar enlace
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(generatePublicUrl());
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 2000);
+    } catch (err) {
+      console.error('Error copiando al portapapeles:', err);
+      // Fallback para navegadores que no soportan clipboard API
+      const textArea = document.createElement('textarea');
+      textArea.value = generatePublicUrl();
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 2000);
+    }
+  };
+
+  // Función para abrir en nueva pestaña
+  const openPublicPortfolio = async () => {
+    // Guardar antes de abrir si hay cambios
+    const currentDataHash = createDataHash();
+    if (currentDataHash !== lastSaved) {
+      await forceSave();
+    }
+    
+    window.open(generatePublicUrl(), '_blank');
+  };
+
+  if (!isMounted || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
@@ -1301,270 +1364,429 @@ export default function VisualWebEditor() {
   }
 
   return (
-    <main className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
-      <div className="flex h-screen">
-        
-        {/* COLUMNA 1: Sidebar de componentes */}
-        <aside 
-          style={{ width: sidebarWidth }}
-          className="flex-shrink-0 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 h-screen flex flex-col"
-        >
-          {/* Header fijo de componentes */}
-          <div className="flex-shrink-0 p-6 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-            <h2 className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
-              <Code size={20} className="text-blue-600" />
-              Componentes
-            </h2>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-              Arrastra para agregar al diseño
-            </p>
-          </div>
+    <ClientOnly fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-300">
+            Inicializando editor...
+          </h2>
+        </div>
+      </div>
+    }>
+      <main className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+        <div className="flex h-screen">
           
-          {/* Área scrolleable SOLO de componentes */}
-          <div className="flex-1 overflow-y-auto overflow-x-hidden">
-            <div className="p-6 space-y-4">
-              {(Object.entries(COMPONENTS_MAP) as [ComponentType, ComponentData][]).map(([type, data]) => (
-                <ComponentAccordion
-                  key={type}
-                  type={type}
-                  data={data}
-                  onDragStart={handleDragStart}
-                />
-              ))}
-            </div>
-          </div>
-        </aside>
-
-        {/* Divisor arrastrable */}
-        <div
-          onMouseDown={handleMouseDown}
-          className="w-1 cursor-col-resize bg-gray-200 dark:bg-gray-700 hover:bg-blue-500 dark:hover:bg-blue-600 transition-colores flex-shrink-0"
-        />
-
-        {/* COLUMNA 2: Área central del editor */}
-        <section className="flex-1 h-screen flex flex-col">
-          {/* Header del proyecto - FIJO */}
-          <header className="flex-shrink-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="flex items-center gap-4">
-                  <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
-                    {projectName}
-                  </h1>
-                  
-                  {/* Indicador de estado mejorado */}
-                  <div className="flex items-center gap-2">
-                    {isSaving && (
-                      <div className="flex items-center gap-2 text-sm text-amber-600 dark:text-amber-400">
-                        <div className="w-3 h-3 border-2 border-amber-600 border-t-transparent rounded-full animate-spin"></div>
-                        <span>Guardando...</span>
-                      </div>
-                    )}
-                    
-                    {!isSaving && hasUnsavedChanges() && (
-                      <div className="flex items-center gap-2 text-sm text-orange-600 dark:text-orange-400">
-                        <div className="w-2 h-2 bg-orange-600 rounded-full"></div>
-                        <span>Cambios pendientes</span>
-                      </div>
-                    )}
-                    
-                    {!isSaving && !hasUnsavedChanges() && lastSaved && (
-                      <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
-                        <div className="w-2 h-2 bg-green-600 rounded-full"></div>
-                        <span>Guardado</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                
-                <p className="text-gray-600 dark:text-gray-400 mt-1">
-                  {blocks.length} componente{blocks.length !== 1 ? 's' : ''} añadido{blocks.length !== 1 ? 's' : ''}
-                </p>
-              </div>
-              
-              <div className="flex items-center gap-4">
-                <Link
-                  href="/portfolios"
-                  className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-lg font-medium transition-colors"
-                >
-                  ← Volver
-                </Link>
-                
-                {/* Botón de guardado manual (opcional) */}
-                {hasUnsavedChanges() && (
-                  <button
-                    onClick={forceSave}
-                    disabled={isSaving}
-                    className="flex items-center gap-2 px-4 py-2 text-blue-600 hover:text-blue-700 border border-blue-300 hover:border-blue-400 rounded-lg font-medium transition-colores disabled:opacity-50"
-                  >
-                    {isSaving ? (
-                      <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                    ) : (
-                      '💾'
-                    )}
-                    Guardar
-                  </button>
-                )}
-                
-                <button
-                  onClick={openPreview}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colores"
-                >
-                  <Eye size={18} />
-                  Vista Previa
-                </button>
-              </div>
-            </div>
-          </header>
-
-          {/* Canvas del editor con scroll INDEPENDIENTE */}
-          <div 
-            className="flex-1 overflow-y-auto overflow-x-hidden bg-gray-100 dark:bg-gray-900"
-            onDragOver={handleDragOver}
-            onDrop={handleDrop}
-            onClick={handleCanvasClick}
+          {/* COLUMNA 1: Sidebar de componentes */}
+          <aside 
+            style={{ width: sidebarWidth }}
+            className="flex-shrink-0 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 h-screen flex flex-col"
           >
-            <div className="p-8">
-              {/* Controles de zoom - posición fija */}
-              <div className="fixed bottom-6 right-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-2 flex items-center gap-2 z-40">
-                <button
-                  onClick={() => handleZoomChange(zoom - 25)}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
-                >
-                  <Minus size={16} />
-                </button>
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-300 min-w-[4rem] text-center">
-                  {zoom}%
-                </span>
-                <button
-                  onClick={() => handleZoomChange(zoom + 25)}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
-                >
-                  +
-                </button>
-              </div>
-
-              {/* Simulador de navegador */}
-              <div className="bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 h-10 rounded-t-lg flex items-center justify-between px-4 sticky top-0 z-10">
-                <div className="flex items-center gap-2">
-                  <button className="p-1.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400">
-                    <ArrowLeft size={16} />
-                  </button>
-                  <button className="p-1.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400">
-                    <ArrowRight size={16} />
-                  </button>
-                </div>
-                
-                <div className="flex-1 mx-4">
-                  <div className="bg-white dark:bg-gray-700 rounded-md px-3 py-1.5 text-xs text-gray-500 dark:text-gray-400 flex items-center">
-                    <Code size={12} className="mr-2" />
-                    <span className="truncate">devportfolio.app/{projectName.toLowerCase().replace(/\s+/g, '-')}</span>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <button className="p-1.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400">
-                    <Minus size={16} />
-                  </button>
-                  <button className="p-1.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400">
-                    <Maximize2 size={16} />
-                  </button>
-                  <button className="p-1.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-red-500 hover:text-red-600">
-                    <X size={16} />
-                  </button>
-                </div>
-              </div>
-
-              {/* Lienzo escalable */}
-              <div 
-                style={{
-                  transform: `scale(${zoom / 100})`,
-                  transformOrigin: 'top center',
-                  width: '100%',
-                  maxWidth: isPropertiesPanelOpen ? '1200px' : '1800px',
-                  margin: '0 auto',
-                  minHeight: 'calc(100vh - 120px)',
-                  background: 'white',
-                  boxShadow: '0 0 20px rgba(0,0,0,0.1)',
-                }}
-                className="transition-all duration-200"
-              >
-                {blocks.length === 0 ? (
-                  <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-12 text-center min-h-[400px] flex flex-col items-center justify-center">
-                    <Code size={48} className="text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-gray-600 dark:text-gray-400 mb-2">
-                      Tu lienzo está vacío
-                    </h3>
-                    <p className="text-gray-500 dark:text-gray-500">
-                      Arrastra componentes desde el panel lateral para comenzar a diseñar
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-0">
-                    {blocks.map((blockId) => (
-                      <div 
-                        key={blockId} 
-                        data-id={blockId}
-                        className="relative"
-                      >
-                        <SortableBlock
-                          id={blockId}
-                          onDelete={deleteBlock}
-                          onSelect={handleBlockSelect}
-                          isSelected={selectedBlockId === blockId}
-                          properties={blockProperties[blockId]}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+            {/* Header fijo de componentes */}
+            <div className="flex-shrink-0 p-6 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+              <h2 className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
+                <Code size={20} className="text-blue-600" />
+                Componentes
+              </h2>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                Arrastra para agregar al diseño
+              </p>
             </div>
-          </div>
-        </section>
-
-        {/* COLUMNA 3: Panel de propiedades (aparece/desaparece) */}
-        {isPropertiesPanelOpen && (
-          <aside className="w-80 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 h-screen flex flex-col flex-shrink-0">
-            {/* Header fijo del panel de propiedades */}
-            <div className="flex-shrink-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
-                  Propiedades
-                </h3>
-                <button
-                  onClick={handleClosePropertiesPanel}
-                  className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-              {selectedBlockId && (
-                <div className="mt-2 bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
-                  <h4 className="font-medium text-gray-800 dark:text-white text-sm">
-                    {COMPONENTS_MAP[selectedBlockId.split('-')[0] as ComponentType]?.name}
-                  </h4>
-                  <p className="text-xs text-gray-600 dark:text-gray-400">
-                    {COMPONENTS_MAP[selectedBlockId.split('-')[0] as ComponentType]?.variants[parseInt(selectedBlockId.split('-')[1])]?.name}
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* Contenido scrolleable SOLO del panel de propiedades */}
+            
+            {/* Área scrolleable SOLO de componentes */}
             <div className="flex-1 overflow-y-auto overflow-x-hidden">
-              <div className="p-4">
-                <PropertiesPanel
-                  selectedBlockId={selectedBlockId}
-                  blockProperties={blockProperties}
-                  onUpdateProperties={handlePropertiesUpdate}
-                  onClose={handleClosePropertiesPanel}
-                />
+              <div className="p-6 space-y-4">
+                {(Object.entries(COMPONENTS_MAP) as [ComponentType, ComponentData][]).map(([type, data]) => (
+                  <ComponentAccordion
+                    key={type}
+                    type={type}
+                    data={data}
+                    onDragStart={handleDragStart}
+                  />
+                ))}
               </div>
             </div>
           </aside>
+
+          {/* Divisor arrastrable */}
+          <div
+            onMouseDown={handleMouseDown}
+            className="w-1 cursor-col-resize bg-gray-200 dark:bg-gray-700 hover:bg-blue-500 dark:hover:bg-blue-600 transition-colores flex-shrink-0"
+          />
+
+          {/* COLUMNA 2: Área central del editor */}
+          <section className="flex-1 h-screen flex flex-col">
+            {/* Header del proyecto - FIJO */}
+            <header className="flex-shrink-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="flex items-center gap-4">
+                    <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
+                      {projectName}
+                    </h1>
+                    
+                    {/* Indicador de estado mejorado */}
+                    <div className="flex items-center gap-2">
+                      {isSaving && (
+                        <div className="flex items-center gap-2 text-sm text-amber-600 dark:text-amber-400">
+                          <div className="w-3 h-3 border-2 border-amber-600 border-t-transparent rounded-full animate-spin"></div>
+                          <span>Guardando...</span>
+                        </div>
+                      )}
+                      
+                      {!isSaving && hasUnsavedChanges() && (
+                        <div className="flex items-center gap-2 text-sm text-orange-600 dark:text-orange-400">
+                          <div className="w-2 h-2 bg-orange-600 rounded-full"></div>
+                          <span>Cambios pendientes</span>
+                        </div>
+                      )}
+                      
+                      {!isSaving && !hasUnsavedChanges() && lastSaved && (
+                        <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
+                          <div className="w-2 h-2 bg-green-600 rounded-full"></div>
+                          <span>Guardado</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <p className="text-gray-600 dark:text-gray-400 mt-1">
+                    {blocks.length} componente{blocks.length !== 1 ? 's' : ''} añadido{blocks.length !== 1 ? 's' : ''}
+                  </p>
+                </div>
+                
+                <div className="flex items-center gap-4">
+                  <Link
+                    href="/portfolios"
+                    className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-lg font-medium transition-colores"
+                  >
+                    ← Volver
+                  </Link>
+                  
+                  {/* Botón de guardado manual (opcional) */}
+                  {hasUnsavedChanges() && (
+                    <button
+                      onClick={forceSave}
+                      disabled={isSaving}
+                      className="flex items-center gap-2 px-4 py-2 text-blue-600 hover:text-blue-700 border border-blue-300 hover:border-blue-400 rounded-lg font-medium transition-colores disabled:opacity-50"
+                    >
+                      {isSaving ? (
+                        <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                      ) : (
+                        '💾'
+                      )}
+                      Guardar
+                    </button>
+                  )}
+                  
+                  {/* Botón de Compartir */}
+                  <button
+                    onClick={() => setShowShareModal(true)}
+                    className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colores"
+                  >
+                    <Share2 size={18} />
+                    Compartir
+                  </button>
+                  
+                  <button
+                    onClick={openPreview}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colores"
+                  >
+                    <Eye size={18} />
+                    Vista Previa
+                  </button>
+                </div>
+              </div>
+            </header>
+
+            {/* Canvas del editor con scroll INDEPENDIENTE */}
+            <div 
+              className="flex-1 overflow-y-auto overflow-x-hidden bg-gray-100 dark:bg-gray-900"
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+              onClick={handleCanvasClick}
+            >
+              <div className="p-8">
+                {/* Controles de zoom - posición fija */}
+                <div className="fixed bottom-6 right-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-2 flex items-center gap-2 z-40">
+                  <button
+                    onClick={() => handleZoomChange(zoom - 25)}
+                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                  >
+                    <Minus size={16} />
+                  </button>
+                  <span className="text-sm font-medium text-gray-600 dark:text-gray-300 min-w-[4rem] text-center">
+                    {zoom}%
+                  </span>
+                  <button
+                    onClick={() => handleZoomChange(zoom + 25)}
+                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                  >
+                    +
+                  </button>
+                </div>
+
+                {/* Simulador de navegador */}
+                <div className="bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 h-10 rounded-t-lg flex items-center justify-between px-4 sticky top-0 z-10">
+                  <div className="flex items-center gap-2">
+                    <button className="p-1.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400">
+                      <ArrowLeft size={16} />
+                    </button>
+                    <button className="p-1.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400">
+                      <ArrowRight size={16} />
+                    </button>
+                  </div>
+                  
+                  <div className="flex-1 mx-4">
+                    <div className="bg-white dark:bg-gray-700 rounded-md px-3 py-1.5 text-xs text-gray-500 dark:text-gray-400 flex items-center">
+                      <Code size={12} className="mr-2" />
+                      <span className="truncate">devportfolio.app/{projectName.toLowerCase().replace(/\s+/g, '-')}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <button className="p-1.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400">
+                      <Minus size={16} />
+                    </button>
+                    <button className="p-1.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400">
+                      <Maximize2 size={16} />
+                    </button>
+                    <button className="p-1.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-red-500 hover:text-red-600">
+                      <X size={16} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Lienzo escalable */}
+                <div 
+                  style={{
+                    transform: `scale(${zoom / 100})`,
+                    transformOrigin: 'top center',
+                    width: '100%',
+                    maxWidth: isPropertiesPanelOpen ? '1200px' : '1800px',
+                    margin: '0 auto',
+                    minHeight: 'calc(100vh - 120px)',
+                    background: 'white',
+                    boxShadow: '0 0 20px rgba(0,0,0,0.1)',
+                  }}
+                  className="transition-all duration-200"
+                >
+                  {blocks.length === 0 ? (
+                    <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-12 text-center min-h-[400px] flex flex-col items-center justify-center">
+                      <Code size={48} className="text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-xl font-semibold text-gray-600 dark:text-gray-400 mb-2">
+                        Tu lienzo está vacío
+                      </h3>
+                      <p className="text-gray-500 dark:text-gray-500">
+                        Arrastra componentes desde el panel lateral para comenzar a diseñar
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-0">
+                      {blocks.map((blockId) => (
+                        <div 
+                          key={blockId} 
+                          data-id={blockId}
+                          className="relative"
+                        >
+                          <SortableBlock
+                            id={blockId}
+                            onDelete={deleteBlock}
+                            onSelect={handleBlockSelect}
+                            isSelected={selectedBlockId === blockId}
+                            properties={blockProperties[blockId]}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* COLUMNA 3: Panel de propiedades (aparece/desaparece) */}
+          {isPropertiesPanelOpen && (
+            <aside className="w-80 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 h-screen flex flex-col flex-shrink-0">
+              {/* Header fijo del panel de propiedades */}
+              <div className="flex-shrink-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
+                    Propiedades
+                  </h3>
+                  <button
+                    onClick={handleClosePropertiesPanel}
+                    className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+                {selectedBlockId && (
+                  <div className="mt-2 bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
+                    <h4 className="font-medium text-gray-800 dark:text-white text-sm">
+                      {COMPONENTS_MAP[selectedBlockId.split('-')[0] as ComponentType]?.name}
+                    </h4>
+                    <p className="text-xs text-gray-600 dark:text-gray-400">
+                      {COMPONENTS_MAP[selectedBlockId.split('-')[0] as ComponentType]?.variants[parseInt(selectedBlockId.split('-')[1])]?.name}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Contenido scrolleable SOLO del panel de propiedades */}
+              <div className="flex-1 overflow-y-auto overflow-x-hidden">
+                <div className="p-4">
+                  <PropertiesPanel
+                    selectedBlockId={selectedBlockId}
+                    blockProperties={blockProperties}
+                    onUpdateProperties={handlePropertiesUpdate}
+                    onClose={handleClosePropertiesPanel}
+                  />
+                </div>
+              </div>
+            </aside>
+          )}
+        </div>
+
+        {/* Modal de Compartir */}
+        {showShareModal && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-6">
+              {/* Header del modal */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center">
+                    <Share2 size={24} className="text-green-600 dark:text-green-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                      Compartir Portfolio
+                    </h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Tu portfolio está listo para compartir
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowShareModal(false)}
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colores"
+                >
+                  <X size={20} className="text-gray-500" />
+                </button>
+              </div>
+
+              {/* URL del portfolio */}
+              <div className="space-y-3">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Enlace público de tu portfolio
+                </label>
+                <div className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg">
+                  <input
+                    type="text"
+                    value={generatePublicUrl()}
+                    readOnly
+                    className="flex-1 bg-transparent text-sm text-gray-700 dark:text-gray-300 outline-none"
+                  />
+                  <button
+                    onClick={copyToClipboard}
+                    className={`flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-md transition-colores ${
+                      linkCopied 
+                        ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400'
+                        : 'bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/40'
+                    }`}
+                  >
+                    {linkCopied ? (
+                      <>
+                        <Check size={14} />
+                        Copiado
+                      </>
+                    ) : (
+                      <>
+                        <Copy size={14} />
+                        Copiar
+                      </>
+                    )}
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Este enlace se actualiza automáticamente cuando guardas cambios
+                </p>
+              </div>
+
+
+              {/* Estado del portfolio */}
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-blue-900 dark:text-blue-100 text-sm">
+                      💡 ¿Cómo funciona?
+                    </h4>
+                    <ul className="text-sm text-blue-800 dark:text-blue-200 mt-1 space-y-1">
+                      <li>• Tu portfolio está disponible públicamente en esta URL</li>
+                      <li>• Los cambios se reflejan automáticamente al guardar</li>
+                      <li>• Puedes compartir este enlace en redes sociales</li>
+                      <li>• Es compatible con todos los navegadores</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              {/* Acciones del modal */}
+              <div className="flex items-center gap-3 pt-2">
+                <button
+                  onClick={openPublicPortfolio}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colores"
+                >
+                  <ExternalLink size={18} />
+                  Abrir Portfolio
+                </button>
+                
+                <button
+                  onClick={() => setShowShareModal(false)}
+                  className="px-4 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg font-medium transition-colores"
+                >
+                  Cerrar
+                </button>
+              </div>
+
+              {/* Estadísticas adicionales */}
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+                <div className="grid grid-cols-3 gap-4 text-center">
+                  <div>
+                    <div className="text-lg font-bold text-gray-900 dark:text-white">
+                      {blocks.length}
+                    </div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                      Componentes
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-lg font-bold text-gray-900 dark:text-white">
+                      {!isSaving && !hasUnsavedChanges() ? '✅' : '⏳'}
+                    </div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                      Estado
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-lg font-bold text-gray-900 dark:text-white">
+                      📱
+                    </div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                      Responsive
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         )}
-      </div>
-    </main>
+      </main>
+    </ClientOnly>
   );
 }
