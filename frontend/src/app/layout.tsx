@@ -8,7 +8,7 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "DevPortfolio Builder",
-  description: "Crea tu portfolio profesional fácilmente",
+  description: "Crea portfolios increíbles sin código",
 };
 
 export default function RootLayout({
@@ -17,7 +17,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="es">
+    <html lang="es" className="dark">
       <body className={inter.className}>
         <UserProvider>
           <Navbar />

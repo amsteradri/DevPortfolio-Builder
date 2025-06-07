@@ -25,12 +25,12 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="bg-white-500/95 dark:bg-black-600/95 backdrop-blur-md border-b border-silver-300 dark:border-battleship_gray-700 sticky top-0 z-50">
+    <nav className="bg-white-500/95 dark:bg-black-600/95 backdrop-blur-md  dark:border-battleship_gray-700 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link href="/" className="flex-shrink-0 flex items-center">
-              <span className="text-2xl font-bold text-white">
+              <span className="text-2xl font-bold text-black dark:text-icterine-500">
                 DevPortfolio
               </span>
             </Link>
