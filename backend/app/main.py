@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from . import models, schemas, database
-from .api import auth
+from .api import auth, portfolios
 from .migrate import migrate_database
 from starlette.middleware.sessions import SessionMiddleware
 import os
@@ -32,10 +32,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Incluir rutas de autenticación
+# Incluir rutas
 app.include_router(auth.router, prefix="/auth", tags=["authentication"])
+app.include_router(portfolios.router, prefix="/api/portfolios", tags=["portfolios"])
 
-# Rutas existentes
+# Rutas básicas
 @app.get("/")
 def read_root():
     return {"message": "DevPortfolio Builder API"}
@@ -49,67 +50,23 @@ def health_check():
         "database_connected": True
     }
 
-@app.post("/portfolio/save/", response_model=schemas.Portfolio)
-def save_portfolio(portfolio: schemas.PortfolioCreate, db: Session = Depends(database.get_db)):
-    """Guardar o actualizar un portfolio"""
-    print(f"Saving portfolio: {portfolio.name}")
-    
+# Ruta específica para /p/{name} - portfolios públicos
+@app.get("/portfolio/{portfolio_name}", response_model=schemas.Portfolio)
+def get_public_portfolio(portfolio_name: str, db: Session = Depends(database.get_db)):
+    """Obtener portfolio para vista pública /p/{name}"""
     try:
-        # Verificar si ya existe un portfolio con ese nombre
-        existing_portfolio = db.query(models.Portfolio).filter(
-            models.Portfolio.name == portfolio.name
-        ).first()
-        
-        if existing_portfolio:
-            print(f"Updating existing portfolio: {existing_portfolio.id}")
-            # Actualizar portfolio existente
-            existing_portfolio.content = portfolio.content
-            db.commit()
-            db.refresh(existing_portfolio)
-            return existing_portfolio
-        else:
-            print(f"Creating new portfolio: {portfolio.name}")
-            # Crear nuevo portfolio
-            db_portfolio = models.Portfolio(
-                name=portfolio.name,
-                content=portfolio.content,
-                user_id=portfolio.user_id
-            )
-            db.add(db_portfolio)
-            db.commit()
-            db.refresh(db_portfolio)
-            return db_portfolio
-            
-    except Exception as e:
-        print(f"Error saving portfolio: {e}")
-        db.rollback()
-        raise HTTPException(status_code=500, detail=f"Error al guardar el portfolio: {str(e)}")
-
-@app.get("/portfolio/{name}")
-def get_portfolio(name: str, db: Session = Depends(database.get_db)):
-    """Obtener un portfolio por nombre"""
-    try:
+        # Buscar por nombre exacto o similar
         portfolio = db.query(models.Portfolio).filter(
-            models.Portfolio.name == name
+            models.Portfolio.name.ilike(f"%{portfolio_name}%")
         ).first()
         
-        if portfolio is None:
-            raise HTTPException(status_code=404, detail="Portfolio not found")
+        if not portfolio:
+            raise HTTPException(status_code=404, detail="Portfolio no encontrado")
         
         return portfolio
         
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Error getting portfolio: {e}")
-        raise HTTPException(status_code=500, detail="Error al obtener el portfolio")
-
-@app.get("/portfolios/")
-def list_portfolios(db: Session = Depends(database.get_db)):
-    """Listar todos los portfolios"""
-    try:
-        portfolios = db.query(models.Portfolio).all()
-        return portfolios
-    except Exception as e:
-        print(f"Error listing portfolios: {e}")
-        raise HTTPException(status_code=500, detail="Error al listar portfolios")
+        print(f"Error getting public portfolio: {e}")
+        raise HTTPException(status_code=500, detail="Error al obtener portfolio")

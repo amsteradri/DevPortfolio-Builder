@@ -1,6 +1,6 @@
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 
 class UserBase(BaseModel):
     email: EmailStr
@@ -33,10 +33,10 @@ class User(UserBase):
 # Esquemas del Portfolio
 class PortfolioBase(BaseModel):
     name: str
-    content: Dict[Any, Any]  # Cambiado de dict a Dict[Any, Any] para mayor flexibilidad
+    content: Dict[Any, Any]
 
 class PortfolioCreate(PortfolioBase):
-    user_id: Optional[int] = None
+    user_id: int  # Ahora es obligatorio
 
 class PortfolioUpdate(BaseModel):
     name: Optional[str] = None
@@ -44,9 +44,16 @@ class PortfolioUpdate(BaseModel):
 
 class Portfolio(PortfolioBase):
     id: int
-    user_id: Optional[int] = None
+    user_id: int
     created_at: datetime
     updated_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+# Schema para User con portfolios
+class UserWithPortfolios(User):
+    portfolios: List[Portfolio] = []
 
     class Config:
         from_attributes = True

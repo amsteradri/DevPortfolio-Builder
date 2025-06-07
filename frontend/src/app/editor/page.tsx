@@ -1,6 +1,8 @@
 "use client"
 
 import React, { useState, useEffect } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import Link from 'next/link'; // ← Agregar esta importación
 import { 
   GripHorizontal, Code, Trash2, Eye, ChevronDown,
   ArrowLeft, ArrowRight, Minus, Maximize2, X, Upload 
@@ -933,10 +935,17 @@ const PropertiesPanel: React.FC<{
       ))}
     </>
   );
-};
+}
 
 export default function VisualWebEditor() {
-  const [isOpen, setIsOpen] = useState(true);
+  const [currentPortfolio, setCurrentPortfolio] = useState<any>(null);
+  const [user, setUser] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState<string>(''); // Para comparar cambios
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  
   const [projectName, setProjectName] = useState('');
   const [blocks, setBlocks] = useState<string[]>([]);
   const [draggedItem, setDraggedItem] = useState<ComponentType | null>(null);
@@ -947,21 +956,30 @@ export default function VisualWebEditor() {
   const [isPropertiesPanelOpen, setIsPropertiesPanelOpen] = useState(false);
   const [blockProperties, setBlockProperties] = useState<{[key: string]: any}>({});
 
-  // Función para limpiar el estado del proyecto
-  const clearProjectState = () => {
-    setBlocks([]);
-    setBlockProperties({});
-    setSelectedBlockId(null);
-    setIsPropertiesPanelOpen(false);
-    localStorage.removeItem('devportfolio-project');
+  // Función para crear un hash de los datos para comparar cambios
+  const createDataHash = () => {
+    return JSON.stringify({
+      name: projectName.trim(),
+      blocks,
+      blockProperties
+    });
   };
 
   // Función para guardar el estado del proyecto
   const saveProjectState = async () => {
-    if (!projectName.trim()) {
-      console.log('No project name, skipping save');
+    if (!currentPortfolio || !user || isSaving) {
+      console.log('Skipping save: missing data or already saving');
       return;
     }
+
+    // Verificar si realmente hay cambios
+    const currentDataHash = createDataHash();
+    if (currentDataHash === lastSaved) {
+      console.log('No changes detected, skipping save');
+      return;
+    }
+
+    setIsSaving(true);
 
     const projectState = {
       name: projectName.trim(),
@@ -973,124 +991,178 @@ export default function VisualWebEditor() {
     };
 
     try {
-      console.log('Saving project:', projectState);
+      console.log('Guardando portfolio:', projectState);
       
-      const response = await fetch('http://localhost:8000/portfolio/save/', {
-        method: 'POST',
+      const response = await fetch(`http://localhost:8000/api/portfolios/${currentPortfolio.id}`, {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(projectState),
       });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Error response:', errorText);
-        throw new Error(`Error al guardar el portfolio: ${response.status} ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      console.log('Portfolio guardado exitosamente:', data);
-      
-      // También guardamos en localStorage como respaldo
-      localStorage.setItem('devportfolio-project', JSON.stringify({
-        projectName: projectName,
-        blocks,
-        blockProperties,
-        lastUpdated: new Date().toISOString()
-      }));
-
-    } catch (error) {
-      console.error('Error al guardar en el servidor:', error);
-      
-      // Si falla el servidor, al menos guardamos en localStorage
-      try {
-        localStorage.setItem('devportfolio-project', JSON.stringify({
+      if (response.ok) {
+        const updatedPortfolio = await response.json();
+        setCurrentPortfolio(updatedPortfolio);
+        setLastSaved(currentDataHash); // Actualizar el hash guardado
+        console.log('✅ Portfolio guardado exitosamente en BD');
+        
+        // También guardar en localStorage como backup
+        localStorage.setItem('devportfolio-backup', JSON.stringify({
+          portfolioId: currentPortfolio.id,
           projectName: projectName,
           blocks,
           blockProperties,
           lastUpdated: new Date().toISOString()
         }));
-        console.log('Guardado en localStorage como respaldo');
-      } catch (localError) {
-        console.error('Error guardando en localStorage:', localError);
+        
+      } else {
+        const errorText = await response.text();
+        console.error('❌ Error al guardar:', errorText);
+        throw new Error(`Error al guardar portfolio: ${response.status}`);
       }
+    } catch (error) {
+      console.error('❌ Error al guardar en servidor:', error);
+      
+      // Guardar en localStorage como fallback
+      localStorage.setItem('devportfolio-backup', JSON.stringify({
+        portfolioId: currentPortfolio.id,
+        projectName: projectName,
+        blocks,
+        blockProperties,
+        lastUpdated: new Date().toISOString(),
+        needsSync: true
+      }));
+    } finally {
+      setIsSaving(false);
     }
   };
 
-  // Función para cargar el estado del proyecto
-  const loadProjectState = async () => {
-    if (!projectName.trim()) return;
-
+  // Cargar portfolio específico
+  const loadPortfolio = async (portfolioId: number) => {
     try {
-      // Intentar cargar desde el servidor primero
-      const response = await fetch(`http://localhost:8000/portfolio/${projectName.trim()}`);
+      console.log('Cargando portfolio:', portfolioId);
+      
+      const response = await fetch(`http://localhost:8000/api/portfolios/${portfolioId}`);
       
       if (response.ok) {
-        const data = await response.json();
-        console.log('Portfolio cargado desde servidor:', data);
+        const portfolio = await response.json();
+        console.log('✅ Portfolio cargado:', portfolio);
         
-        if (data.content) {
-          setBlocks(data.content.blocks || []);
-          setBlockProperties(data.content.blockProperties || {});
+        setCurrentPortfolio(portfolio);
+        setProjectName(portfolio.name);
+        
+        if (portfolio.content) {
+          setBlocks(portfolio.content.blocks || []);
+          setBlockProperties(portfolio.content.blockProperties || {});
         }
-        return;
-      }
-    } catch (error) {
-      console.log('No se pudo cargar desde servidor, intentando localStorage');
-    }
 
-    // Fallback a localStorage
-    try {
-      const savedProject = localStorage.getItem('devportfolio-project');
-      if (savedProject) {
-        const projectState = JSON.parse(savedProject);
-        if (projectState.projectName === projectName) {
-          setBlocks(projectState.blocks || []);
-          setBlockProperties(projectState.blockProperties || {});
-          console.log('Portfolio cargado desde localStorage');
-        }
+        // Establecer el hash inicial después de cargar
+        setTimeout(() => {
+          setLastSaved(createDataHash());
+        }, 100);
+        
+        setIsLoading(false);
+      } else {
+        console.error('❌ Error cargando portfolio:', response.status);
+        router.push('/portfolios');
       }
     } catch (error) {
-      console.error('Error loading from localStorage:', error);
+      console.error('❌ Error loading portfolio:', error);
+      router.push('/portfolios');
     }
   };
 
-  // Función para abrir la previsualización (ÚNICA DECLARACIÓN)
-  const openPreview = async () => {
-    // Asegurarse de que los datos estén guardados antes de abrir
-    await saveProjectState();
+  // Verificar autenticación y cargar portfolio
+  useEffect(() => {
+    const savedUser = localStorage.getItem('user');
+    if (!savedUser) {
+      router.push('/login');
+      return;
+    }
+
+    const userData = JSON.parse(savedUser);
+    setUser(userData);
+
+    const portfolioId = searchParams.get('portfolio');
     
-    // Abrir en una nueva pestaña
-    const previewUrl = `/preview?project=${encodeURIComponent(projectName)}`;
+    if (portfolioId) {
+      loadPortfolio(parseInt(portfolioId));
+    } else {
+      router.push('/portfolios');
+    }
+  }, [searchParams, router]);
+
+  // Auto-guardado SOLO cuando hay cambios reales
+  useEffect(() => {
+    if (!currentPortfolio || !user || isLoading || !lastSaved) return;
+
+    const currentDataHash = createDataHash();
+    
+    // Solo guardar si hay cambios reales
+    if (currentDataHash !== lastSaved) {
+      console.log('🔄 Cambios detectados, programando guardado...');
+      
+      const timeoutId = setTimeout(() => {
+        saveProjectState();
+      }, 1500); // Reducido a 1.5 segundos
+
+      return () => {
+        clearTimeout(timeoutId);
+      };
+    }
+  }, [blocks, blockProperties, projectName, currentPortfolio, user, isLoading, lastSaved]);
+
+  // Función para forzar guardado (para preview)
+  const forceSave = async () => {
+    if (!currentPortfolio || !user) return;
+    
+    setIsSaving(true);
+    await saveProjectState();
+  };
+
+  // Función para abrir preview
+  const openPreview = async () => {
+    if (!currentPortfolio) return;
+    
+    // Guardar antes de abrir preview solo si hay cambios
+    const currentDataHash = createDataHash();
+    if (currentDataHash !== lastSaved) {
+      await forceSave();
+    }
+    
+    // Usar el nombre del portfolio para la URL pública
+    const portfolioSlug = projectName.toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '') // remover caracteres especiales
+      .replace(/\s+/g, '-') // espacios a guiones
+      .replace(/-+/g, '-') // múltiples guiones a uno
+      .trim();
+    
+    const previewUrl = `/p/${portfolioSlug}`;
     window.open(previewUrl, '_blank');
   };
 
-  // Cargar estado del proyecto al inicializar
-  useEffect(() => {
-    const savedProject = localStorage.getItem('devportfolio-project');
-    if (savedProject) {
-      try {
-        const projectState = JSON.parse(savedProject);
-        setProjectName(projectState.projectName || '');
-        setBlocks(projectState.blocks || []);
-        setBlockProperties(projectState.blockProperties || {});
-      } catch (error) {
-        console.error('Error loading project state:', error);
-      }
-    }
-  }, []);
+  // Verificar si hay cambios pendientes
+  const hasUnsavedChanges = () => {
+    if (!lastSaved) return false;
+    return createDataHash() !== lastSaved;
+  };
 
-  // Guardar automáticamente cuando cambie algún estado
-  useEffect(() => {
-    if (!isOpen && projectName.trim()) {
-      const timeoutId = setTimeout(() => {
-        saveProjectState();
-      }, 1000); // Debounce de 1 segundo
+  // Limpiar estado (no debería usarse normalmente)
+  const clearProjectState = () => {
+    setBlocks([]);
+    setBlockProperties({});
+    setSelectedBlockId(null);
+    setIsPropertiesPanelOpen(false);
+  };
 
-      return () => clearTimeout(timeoutId);
+  // Función para deseleccionar al hacer click en el canvas
+  const handleCanvasClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      setSelectedBlockId(null);
+      setIsPropertiesPanelOpen(false);
     }
-  }, [projectName, blocks, blockProperties, isOpen]);
+  };
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>, type: ComponentType) => {
     setDraggedItem(type);
@@ -1215,108 +1287,125 @@ export default function VisualWebEditor() {
     setIsPropertiesPanelOpen(false);
   };
 
-  // Función para deseleccionar al hacer click en el canvas
-  const handleCanvasClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      setSelectedBlockId(null);
-      setIsPropertiesPanelOpen(false);
-    }
-  };
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-300">
+            Cargando editor...
+          </h2>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <main className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
-      {/* Modal inicial */}
-      {isOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-2xl max-w-md w-full text-center space-y-6">
-            <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mx-auto flex items-center justify-center mb-4">
-              <Code className="text-white" size={24} />
-            </div>
-            <h2 className="text-3xl font-bold text-gray-800 dark:text-white">
-              Editor Visual
+      <div className="flex h-screen">
+        
+        {/* COLUMNA 1: Sidebar de componentes */}
+        <aside 
+          style={{ width: sidebarWidth }}
+          className="flex-shrink-0 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 h-screen flex flex-col"
+        >
+          {/* Header fijo de componentes */}
+          <div className="flex-shrink-0 p-6 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+            <h2 className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
+              <Code size={20} className="text-blue-600" />
+              Componentes
             </h2>
-            <p className="text-gray-600 dark:text-gray-300">
-              Crea tu página web arrastrando y soltando componentes
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              Arrastra para agregar al diseño
             </p>
-            <input
-              type="text"
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Nombre de tu proyecto..."
-              value={projectName}
-              onChange={(e) => setProjectName(e.target.value)}
-            />
-            <button
-              disabled={!projectName.trim()}
-              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 disabled:from-gray-400 disabled:to-gray-500 text-white px-8 py-3 rounded-xl w-full font-semibold transition-all transform hover:scale-105 disabled:scale-100"
-              onClick={async () => {
-                clearProjectState();
-                setIsOpen(false);
-                // Cargar proyecto existente si existe
-                await loadProjectState();
-              }}
-            >
-              Comenzar a crear
-            </button>
           </div>
-        </div>
-      )}
-
-      {/* Editor principal */}
-      {!isOpen && (
-        <div className="flex h-screen">
           
-          {/* COLUMNA 1: Sidebar de componentes */}
-          <aside 
-            style={{ width: sidebarWidth }}
-            className="flex-shrink-0 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 h-screen flex flex-col"
-          >
-            {/* Header fijo de componentes */}
-            <div className="flex-shrink-0 p-6 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-              <h2 className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
-                <Code size={20} className="text-blue-600" />
-                Componentes
-              </h2>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                Arrastra para agregar al diseño
-              </p>
+          {/* Área scrolleable SOLO de componentes */}
+          <div className="flex-1 overflow-y-auto overflow-x-hidden">
+            <div className="p-6 space-y-4">
+              {(Object.entries(COMPONENTS_MAP) as [ComponentType, ComponentData][]).map(([type, data]) => (
+                <ComponentAccordion
+                  key={type}
+                  type={type}
+                  data={data}
+                  onDragStart={handleDragStart}
+                />
+              ))}
             </div>
-            
-            {/* Área scrolleable SOLO de componentes */}
-            <div className="flex-1 overflow-y-auto overflow-x-hidden">
-              <div className="p-6 space-y-4">
-                {(Object.entries(COMPONENTS_MAP) as [ComponentType, ComponentData][]).map(([type, data]) => (
-                  <ComponentAccordion
-                    key={type}
-                    type={type}
-                    data={data}
-                    onDragStart={handleDragStart}
-                  />
-                ))}
-              </div>
-            </div>
-          </aside>
+          </div>
+        </aside>
 
-          {/* Divisor arrastrable */}
-          <div
-            onMouseDown={handleMouseDown}
-            className="w-1 cursor-col-resize bg-gray-200 dark:bg-gray-700 hover:bg-blue-500 dark:hover:bg-blue-600 transition-colores flex-shrink-0"
-          />
+        {/* Divisor arrastrable */}
+        <div
+          onMouseDown={handleMouseDown}
+          className="w-1 cursor-col-resize bg-gray-200 dark:bg-gray-700 hover:bg-blue-500 dark:hover:bg-blue-600 transition-colores flex-shrink-0"
+        />
 
-          {/* COLUMNA 2: Área central del editor */}
-          <section className="flex-1 h-screen flex flex-col">
-            {/* Header del proyecto - FIJO */}
-            <header className="flex-shrink-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-6">
-              <div className="flex items-center justify-between">
-                <div>
+        {/* COLUMNA 2: Área central del editor */}
+        <section className="flex-1 h-screen flex flex-col">
+          {/* Header del proyecto - FIJO */}
+          <header className="flex-shrink-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="flex items-center gap-4">
                   <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
                     {projectName}
                   </h1>
-                  <p className="text-gray-600 dark:text-gray-400 mt-1">
-                    {blocks.length} componentes añadidos
-                  </p>
+                  
+                  {/* Indicador de estado mejorado */}
+                  <div className="flex items-center gap-2">
+                    {isSaving && (
+                      <div className="flex items-center gap-2 text-sm text-amber-600 dark:text-amber-400">
+                        <div className="w-3 h-3 border-2 border-amber-600 border-t-transparent rounded-full animate-spin"></div>
+                        <span>Guardando...</span>
+                      </div>
+                    )}
+                    
+                    {!isSaving && hasUnsavedChanges() && (
+                      <div className="flex items-center gap-2 text-sm text-orange-600 dark:text-orange-400">
+                        <div className="w-2 h-2 bg-orange-600 rounded-full"></div>
+                        <span>Cambios pendientes</span>
+                      </div>
+                    )}
+                    
+                    {!isSaving && !hasUnsavedChanges() && lastSaved && (
+                      <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
+                        <div className="w-2 h-2 bg-green-600 rounded-full"></div>
+                        <span>Guardado</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 
-                {/* Botón de previsualización */}
+                <p className="text-gray-600 dark:text-gray-400 mt-1">
+                  {blocks.length} componente{blocks.length !== 1 ? 's' : ''} añadido{blocks.length !== 1 ? 's' : ''}
+                </p>
+              </div>
+              
+              <div className="flex items-center gap-4">
+                <Link
+                  href="/portfolios"
+                  className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-lg font-medium transition-colors"
+                >
+                  ← Volver
+                </Link>
+                
+                {/* Botón de guardado manual (opcional) */}
+                {hasUnsavedChanges() && (
+                  <button
+                    onClick={forceSave}
+                    disabled={isSaving}
+                    className="flex items-center gap-2 px-4 py-2 text-blue-600 hover:text-blue-700 border border-blue-300 hover:border-blue-400 rounded-lg font-medium transition-colores disabled:opacity-50"
+                  >
+                    {isSaving ? (
+                      <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                    ) : (
+                      '💾'
+                    )}
+                    Guardar
+                  </button>
+                )}
+                
                 <button
                   onClick={openPreview}
                   className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colores"
@@ -1325,157 +1414,157 @@ export default function VisualWebEditor() {
                   Vista Previa
                 </button>
               </div>
-            </header>
+            </div>
+          </header>
 
-            {/* Canvas del editor con scroll INDEPENDIENTE */}
-            <div 
-              className="flex-1 overflow-y-auto overflow-x-hidden bg-gray-100 dark:bg-gray-900"
-              onDragOver={handleDragOver}
-              onDrop={handleDrop}
-              onClick={handleCanvasClick}
-            >
-              <div className="p-8">
-                {/* Controles de zoom - posición fija */}
-                <div className="fixed bottom-6 right-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-2 flex items-center gap-2 z-40">
-                  <button
-                    onClick={() => handleZoomChange(zoom - 25)}
-                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
-                  >
+          {/* Canvas del editor con scroll INDEPENDIENTE */}
+          <div 
+            className="flex-1 overflow-y-auto overflow-x-hidden bg-gray-100 dark:bg-gray-900"
+            onDragOver={handleDragOver}
+            onDrop={handleDrop}
+            onClick={handleCanvasClick}
+          >
+            <div className="p-8">
+              {/* Controles de zoom - posición fija */}
+              <div className="fixed bottom-6 right-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-2 flex items-center gap-2 z-40">
+                <button
+                  onClick={() => handleZoomChange(zoom - 25)}
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                >
+                  <Minus size={16} />
+                </button>
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-300 min-w-[4rem] text-center">
+                  {zoom}%
+                </span>
+                <button
+                  onClick={() => handleZoomChange(zoom + 25)}
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                >
+                  +
+                </button>
+              </div>
+
+              {/* Simulador de navegador */}
+              <div className="bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 h-10 rounded-t-lg flex items-center justify-between px-4 sticky top-0 z-10">
+                <div className="flex items-center gap-2">
+                  <button className="p-1.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400">
+                    <ArrowLeft size={16} />
+                  </button>
+                  <button className="p-1.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400">
+                    <ArrowRight size={16} />
+                  </button>
+                </div>
+                
+                <div className="flex-1 mx-4">
+                  <div className="bg-white dark:bg-gray-700 rounded-md px-3 py-1.5 text-xs text-gray-500 dark:text-gray-400 flex items-center">
+                    <Code size={12} className="mr-2" />
+                    <span className="truncate">devportfolio.app/{projectName.toLowerCase().replace(/\s+/g, '-')}</span>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <button className="p-1.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400">
                     <Minus size={16} />
                   </button>
-                  <span className="text-sm font-medium text-gray-600 dark:text-gray-300 min-w-[4rem] text-center">
-                    {zoom}%
-                  </span>
-                  <button
-                    onClick={() => handleZoomChange(zoom + 25)}
-                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
-                  >
-                    +
+                  <button className="p-1.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400">
+                    <Maximize2 size={16} />
                   </button>
-                </div>
-
-                {/* Simulador de navegador */}
-                <div className="bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 h-10 rounded-t-lg flex items-center justify-between px-4 sticky top-0 z-10">
-                  <div className="flex items-center gap-2">
-                    <button className="p-1.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400">
-                      <ArrowLeft size={16} />
-                    </button>
-                    <button className="p-1.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400">
-                      <ArrowRight size={16} />
-                    </button>
-                  </div>
-                  
-                  <div className="flex-1 mx-4">
-                    <div className="bg-white dark:bg-gray-700 rounded-md px-3 py-1.5 text-xs text-gray-500 dark:text-gray-400 flex items-center">
-                      <Code size={12} className="mr-2" />
-                      <span className="truncate">devportfolio.app/{projectName.toLowerCase().replace(/\s+/g, '-')}</span>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <button className="p-1.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400">
-                      <Minus size={16} />
-                    </button>
-                    <button className="p-1.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400">
-                      <Maximize2 size={16} />
-                    </button>
-                    <button className="p-1.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-red-500 hover:text-red-600">
-                      <X size={16} />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Lienzo escalable */}
-                <div 
-                  style={{
-                    transform: `scale(${zoom / 100})`,
-                    transformOrigin: 'top center',
-                    width: '100%',
-                    maxWidth: isPropertiesPanelOpen ? '1200px' : '1800px',
-                    margin: '0 auto',
-                    minHeight: 'calc(100vh - 120px)',
-                    background: 'white',
-                    boxShadow: '0 0 20px rgba(0,0,0,0.1)',
-                  }}
-                  className="transition-all duration-200"
-                >
-                  {blocks.length === 0 ? (
-                    <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-12 text-center min-h-[400px] flex flex-col items-center justify-center">
-                      <Code size={48} className="text-gray-400 mx-auto mb-4" />
-                      <h3 className="text-xl font-semibold text-gray-600 dark:text-gray-400 mb-2">
-                        Tu lienzo está vacío
-                      </h3>
-                      <p className="text-gray-500 dark:text-gray-500">
-                        Arrastra componentes desde el panel lateral para comenzar a diseñar
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="space-y-0">
-                      {blocks.map((blockId) => (
-                        <div 
-                          key={blockId} 
-                          data-id={blockId}
-                          className="relative"
-                        >
-                          <SortableBlock
-                            id={blockId}
-                            onDelete={deleteBlock}
-                            onSelect={handleBlockSelect}
-                            isSelected={selectedBlockId === blockId}
-                            properties={blockProperties[blockId]}
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* COLUMNA 3: Panel de propiedades (aparece/desaparece) */}
-          {isPropertiesPanelOpen && (
-            <aside className="w-80 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 h-screen flex flex-col flex-shrink-0">
-              {/* Header fijo del panel de propiedades */}
-              <div className="flex-shrink-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
-                    Propiedades
-                  </h3>
-                  <button
-                    onClick={handleClosePropertiesPanel}
-                    className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
-                  >
+                  <button className="p-1.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-red-500 hover:text-red-600">
                     <X size={16} />
                   </button>
                 </div>
-                {selectedBlockId && (
-                  <div className="mt-2 bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
-                    <h4 className="font-medium text-gray-800 dark:text-white text-sm">
-                      {COMPONENTS_MAP[selectedBlockId.split('-')[0] as ComponentType]?.name}
-                    </h4>
-                    <p className="text-xs text-gray-600 dark:text-gray-400">
-                      {COMPONENTS_MAP[selectedBlockId.split('-')[0] as ComponentType]?.variants[parseInt(selectedBlockId.split('-')[1])]?.name}
+              </div>
+
+              {/* Lienzo escalable */}
+              <div 
+                style={{
+                  transform: `scale(${zoom / 100})`,
+                  transformOrigin: 'top center',
+                  width: '100%',
+                  maxWidth: isPropertiesPanelOpen ? '1200px' : '1800px',
+                  margin: '0 auto',
+                  minHeight: 'calc(100vh - 120px)',
+                  background: 'white',
+                  boxShadow: '0 0 20px rgba(0,0,0,0.1)',
+                }}
+                className="transition-all duration-200"
+              >
+                {blocks.length === 0 ? (
+                  <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-12 text-center min-h-[400px] flex flex-col items-center justify-center">
+                    <Code size={48} className="text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-gray-600 dark:text-gray-400 mb-2">
+                      Tu lienzo está vacío
+                    </h3>
+                    <p className="text-gray-500 dark:text-gray-500">
+                      Arrastra componentes desde el panel lateral para comenzar a diseñar
                     </p>
+                  </div>
+                ) : (
+                  <div className="space-y-0">
+                    {blocks.map((blockId) => (
+                      <div 
+                        key={blockId} 
+                        data-id={blockId}
+                        className="relative"
+                      >
+                        <SortableBlock
+                          id={blockId}
+                          onDelete={deleteBlock}
+                          onSelect={handleBlockSelect}
+                          isSelected={selectedBlockId === blockId}
+                          properties={blockProperties[blockId]}
+                        />
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
+            </div>
+          </div>
+        </section>
 
-              {/* Contenido scrolleable SOLO del panel de propiedades */}
-              <div className="flex-1 overflow-y-auto overflow-x-hidden">
-                <div className="p-4">
-                  <PropertiesPanel
-                    selectedBlockId={selectedBlockId}
-                    blockProperties={blockProperties}
-                    onUpdateProperties={handlePropertiesUpdate}
-                    onClose={handleClosePropertiesPanel}
-                  />
-                </div>
+        {/* COLUMNA 3: Panel de propiedades (aparece/desaparece) */}
+        {isPropertiesPanelOpen && (
+          <aside className="w-80 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 h-screen flex flex-col flex-shrink-0">
+            {/* Header fijo del panel de propiedades */}
+            <div className="flex-shrink-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
+                  Propiedades
+                </h3>
+                <button
+                  onClick={handleClosePropertiesPanel}
+                  className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                >
+                  <X size={16} />
+                </button>
               </div>
-            </aside>
-          )}
-        </div>
-      )}
+              {selectedBlockId && (
+                <div className="mt-2 bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
+                  <h4 className="font-medium text-gray-800 dark:text-white text-sm">
+                    {COMPONENTS_MAP[selectedBlockId.split('-')[0] as ComponentType]?.name}
+                  </h4>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">
+                    {COMPONENTS_MAP[selectedBlockId.split('-')[0] as ComponentType]?.variants[parseInt(selectedBlockId.split('-')[1])]?.name}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Contenido scrolleable SOLO del panel de propiedades */}
+            <div className="flex-1 overflow-y-auto overflow-x-hidden">
+              <div className="p-4">
+                <PropertiesPanel
+                  selectedBlockId={selectedBlockId}
+                  blockProperties={blockProperties}
+                  onUpdateProperties={handlePropertiesUpdate}
+                  onClose={handleClosePropertiesPanel}
+                />
+              </div>
+            </div>
+          </aside>
+        )}
+      </div>
     </main>
   );
 }

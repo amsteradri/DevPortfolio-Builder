@@ -3,12 +3,11 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { Menu, X, User, LogOut } from 'lucide-react';
+import { Menu, X, User, LogOut, Briefcase } from 'lucide-react';
 
 const navItems = [
   { href: '/', label: 'Inicio' },
-  { href: '/editor', label: 'Editor' },
-  { href: '/preview', label: 'Previsualización' },
+  { href: '/portfolios', label: 'Mis Portfolios' },
 ];
 
 export default function Navbar() {
@@ -44,7 +43,7 @@ export default function Navbar() {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            {navItems.map((item) => (
+            {user && navItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
@@ -62,7 +61,15 @@ export default function Navbar() {
             {user ? (
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-2">
-                  <User size={16} className="text-gray-600 dark:text-gray-400" />
+                  {user.picture ? (
+                    <img 
+                      src={user.picture} 
+                      alt="Profile" 
+                      className="w-6 h-6 rounded-full"
+                    />
+                  ) : (
+                    <User size={16} className="text-gray-600 dark:text-gray-400" />
+                  )}
                   <span className="text-sm text-gray-700 dark:text-gray-300">
                     {user.name}
                   </span>
