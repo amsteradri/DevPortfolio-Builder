@@ -30,6 +30,91 @@ interface Portfolio {
   updated_at: string;
 }
 
+// Componente para el preview real del portfolio
+const PortfolioPreview = ({ portfolio }: { portfolio: Portfolio }) => {
+  const [previewLoaded, setPreviewLoaded] = useState(false);
+  const [previewError, setPreviewError] = useState(false);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  
+  const portfolioSlug = portfolio.name.toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .trim();
+
+  const previewUrl = `${window.location.origin}/p/${portfolioSlug}`;
+
+  const handleIframeLoad = () => {
+    setPreviewLoaded(true);
+    setPreviewError(false);
+  };
+
+  const handleIframeError = () => {
+    setPreviewError(true);
+    setPreviewLoaded(false);
+  };
+
+  if (portfolio.content?.blocks?.length === 0) {
+    return (
+      <div className="w-full h-32 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-300 dark:border-gray-600">
+        <div className="text-center">
+          <div className="w-8 h-8 bg-gray-300 dark:bg-gray-600 rounded-full mx-auto mb-2"></div>
+          <p className="text-xs text-gray-500 dark:text-gray-400">Portfolio vacío</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full h-32 bg-white dark:bg-gray-900 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 relative group">
+      {/* Loading state */}
+      {!previewLoaded && !previewError && (
+        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-800">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+        </div>
+      )}
+
+      {/* Error state */}
+      {previewError && (
+        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-800">
+          <div className="text-center">
+            <div className="w-6 h-6 bg-gray-300 dark:bg-gray-600 rounded mx-auto mb-1"></div>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Sin vista previa</p>
+          </div>
+        </div>
+      )}
+
+      {/* Iframe preview */}
+      <iframe
+        ref={iframeRef}
+        src={previewUrl}
+        className={`w-full h-full scale-[0.25] origin-top-left transform-gpu transition-opacity duration-300 ${
+          previewLoaded ? 'opacity-100' : 'opacity-0'
+        }`}
+        style={{
+          width: '400%',
+          height: '400%',
+          pointerEvents: 'none'
+        }}
+        onLoad={handleIframeLoad}
+        onError={handleIframeError}
+        title={`Preview de ${portfolio.name}`}
+      />
+
+      {/* Overlay con efecto hover */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+        <div className="absolute bottom-2 left-2 right-2">
+          <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded px-2 py-1">
+            <p className="text-xs font-medium text-gray-700 dark:text-gray-300 truncate">
+              Vista en vivo
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function PortfoliosPage() {
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -38,13 +123,13 @@ export default function PortfoliosPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newPortfolioName, setNewPortfolioName] = useState('');
   const [activeDropdown, setActiveDropdown] = useState<number | null>(null);
-  const hasLoaded = useRef(false); // Ref para evitar múltiples cargas
+  const hasLoaded = useRef(false);
   const router = useRouter();
   const { user, isLoading: userLoading } = useUser();
 
   // Función para fetch portfolios
   const fetchPortfolios = async (userId: number) => {
-    if (hasLoaded.current) return; // Evitar múltiples llamadas
+    if (hasLoaded.current) return;
     
     console.log('PortfoliosPage: Fetching portfolios for user:', userId);
     setIsLoading(true);
@@ -180,7 +265,6 @@ export default function PortfoliosPage() {
     return portfolio.content?.blocks?.length || 0;
   };
 
-  // Función para generar el slug del portfolio
   const generatePortfolioSlug = (portfolioName: string) => {
     return portfolioName.toLowerCase()
       .replace(/[^a-z0-9\s-]/g, '')
@@ -229,7 +313,6 @@ export default function PortfoliosPage() {
     );
   }
 
-  // No user state
   if (!user) {
     return null;
   }
@@ -325,7 +408,12 @@ export default function PortfoliosPage() {
                 transition={{ duration: 0.5, delay: index * 0.1 }}
                 className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-200 overflow-hidden group"
               >
-                <div className="p-6 pb-4">
+                {/* Preview real del portfolio */}
+                <div className="p-4">
+                  <PortfolioPreview portfolio={portfolio} />
+                </div>
+
+                <div className="p-6 pt-2">
                   <div className="flex items-start justify-between mb-4">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white line-clamp-2">
                       {portfolio.name}

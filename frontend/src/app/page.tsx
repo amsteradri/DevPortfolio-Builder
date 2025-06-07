@@ -39,7 +39,7 @@ export default function HomePage() {
         src="/fondo3.jpg"
         alt="Background"
         fill
-        className="object-cover z-0 grayscale contrast-125 brightness-90"
+        className="object-cover z-0 grayscale contrast-105 brightness-100"
         priority
       />
 
