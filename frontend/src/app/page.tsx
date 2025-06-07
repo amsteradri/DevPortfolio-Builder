@@ -9,10 +9,10 @@ export default function HomePage() {
     <main className="relative min-h-screen flex items-center justify-center px-6 py-20 bg-black text-white overflow-hidden">
       {/* Imagen de fondo en blanco y negro */}
       <Image
-        src="/fondo2.jpg"
+        src="/fondo3.jpg"
         alt="Background"
         fill
-        className="object-cover z-0 grayscale contrast-125 brightness-100"
+        className="object-cover z-0 grayscale contrast-115 brightness-100"
         priority
       />
 
@@ -33,13 +33,13 @@ export default function HomePage() {
               textShadow: '0 0 20px rgba(255, 255, 255, 0.5)',
             }}
             transition={{ type: 'spring', stiffness: 300 }}
-            className="bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent"
+            className="bg-gradient-to-r from-icterine-500 to-silver-500 bg-clip-text text-transparent"
           >
             DevPortfolio Builder
           </motion.span>
         </h1>
 
-        <p className="text-lg sm:text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
+        <p className="text-lg sm:text-xl text-silver-300 max-w-2xl mx-auto leading-relaxed">
           Crea, personaliza y despliega tu portafolio como desarrollador en minutos.<br />
           Editor visual, temas limpios y despliegue automático.
         </p>
