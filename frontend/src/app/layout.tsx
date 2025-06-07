@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import ClientLayout from "@/components/ClientLayout";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -16,15 +15,12 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  // Verificar si estamos en la ruta portfolio
-  const isPortfolioRoute = typeof window !== 'undefined' && window.location.pathname.startsWith('/portfolio');
-
   return (
     <html lang="es">
       <body className={inter.className}>
-        {!isPortfolioRoute && <Navbar />}
-        {children}
-        <Footer />
+        <ClientLayout>
+          {children}
+        </ClientLayout>
       </body>
     </html>
   );

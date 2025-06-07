@@ -976,6 +976,15 @@ export default function VisualWebEditor() {
   const [isPropertiesPanelOpen, setIsPropertiesPanelOpen] = useState(false);
   const [blockProperties, setBlockProperties] = useState<{[key: string]: any}>({});
 
+  // Función para limpiar el estado del proyecto
+  const clearProjectState = () => {
+    setBlocks([]);
+    setBlockProperties({});
+    setSelectedBlockId(null);
+    setIsPropertiesPanelOpen(false);
+    localStorage.removeItem('devportfolio-project');
+  };
+
   // Función para guardar el estado del proyecto
   const saveProjectState = async () => {
     const projectState = {
@@ -1196,7 +1205,10 @@ export default function VisualWebEditor() {
             <button
               disabled={!projectName.trim()}
               className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 disabled:from-gray-400 disabled:to-gray-500 text-white px-8 py-3 rounded-xl w-full font-semibold transition-all transform hover:scale-105 disabled:scale-100"
-              onClick={() => setIsOpen(false)}
+              onClick={() => {
+                clearProjectState();
+                setIsOpen(false);
+              }}
             >
               Comenzar a crear
             </button>
