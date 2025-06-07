@@ -2,80 +2,161 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
-import { Menu, X } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Menu, X, User, LogOut } from 'lucide-react';
 
 const navItems = [
   { href: '/', label: 'Inicio' },
   { href: '/editor', label: 'Editor' },
   { href: '/preview', label: 'Previsualización' },
-  { href: '/profile', label: 'Perfil' },
-  { href: '/login', label: 'Login' },
 ];
 
 export default function Navbar() {
-  const pathname = usePathname();
-  if (pathname.startsWith("/p")) return null;
-
   const [isOpen, setIsOpen] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const pathname = usePathname();
 
-  const linkClass = (href: string) =>
-    `px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
-      pathname === href
-        ? 'bg-[#23194F] text-[#DDFEF8]'
-        : 'text-[#23194F] hover:bg-[#DDFEF8] dark:text-[#DDFEF8] dark:hover:bg-[#23194F]'
-    }`;
+  useEffect(() => {
+    // Verificar si hay usuario logueado
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    setUser(null);
+    window.location.href = '/';
+  };
 
   return (
-    <header className="w-full sticky top-0 z-50 bg-white/80 dark:bg-[#0f0e20]/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 shadow-sm">
+    <nav className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          <Link
-            href="/"
-            className="text-2xl font-bold text-[#23194F] dark:text-[#DDFEF8] tracking-tight"
-          >
-            DevPortfolio
-          </Link>
+        <div className="flex justify-between h-16">
+          <div className="flex items-center">
+            <Link href="/" className="flex-shrink-0 flex items-center">
+              <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                DevPortfolio
+              </span>
+            </Link>
+          </div>
 
-          {/* Desktop Nav */}
-          <nav className="hidden md:flex space-x-3">
-            {navItems.map(({ href, label }) => (
-              <Link key={href} href={href} className={linkClass(href)}>
-                {label}
-              </Link>
-            ))}
-          </nav>
-
-          {/* Mobile Toggle */}
-          <button
-            className="md:hidden p-2 rounded-md text-[#23194F] dark:text-[#DDFEF8] hover:bg-[#DDFEF8]/30 dark:hover:bg-[#23194F]/30"
-            onClick={() => setIsOpen(!isOpen)}
-            aria-label="Toggle menu"
-          >
-            {isOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
-        </div>
-
-        {/* Mobile Nav */}
-        <div
-          className={`md:hidden transition-all duration-300 ease-in-out overflow-hidden ${
-            isOpen ? 'max-h-[500px] mt-2' : 'max-h-0'
-          }`}
-        >
-          <nav className="flex flex-col space-y-2 pb-4">
-            {navItems.map(({ href, label }) => (
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-8">
+            {navItems.map((item) => (
               <Link
-                key={href}
-                href={href}
-                className={linkClass(href)}
-                onClick={() => setIsOpen(false)}
+                key={item.href}
+                href={item.href}
+                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  pathname === item.href
+                    ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/20'
+                    : 'text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400'
+                }`}
               >
-                {label}
+                {item.label}
               </Link>
             ))}
-          </nav>
+            
+            {/* User Menu */}
+            {user ? (
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <User size={16} className="text-gray-600 dark:text-gray-400" />
+                  <span className="text-sm text-gray-700 dark:text-gray-300">
+                    {user.name}
+                  </span>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center space-x-1 px-3 py-2 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
+                >
+                  <LogOut size={16} />
+                  <span>Salir</span>
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center space-x-4">
+                <Link
+                  href="/login"
+                  className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                >
+                  Iniciar Sesión
+                </Link>
+                <Link
+                  href="/register"
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                >
+                  Registrarse
+                </Link>
+              </div>
+            )}
+          </div>
+
+          {/* Mobile menu button */}
+          <div className="md:hidden flex items-center">
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
+            >
+              {isOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
         </div>
       </div>
-    </header>
+
+      {/* Mobile Navigation */}
+      {isOpen && (
+        <div className="md:hidden">
+          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
+            {navItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`block px-3 py-2 rounded-md text-base font-medium transition-colors ${
+                  pathname === item.href
+                    ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/20'
+                    : 'text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400'
+                }`}
+                onClick={() => setIsOpen(false)}
+              >
+                {item.label}
+              </Link>
+            ))}
+            
+            {user ? (
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
+                <div className="px-3 py-2 text-sm text-gray-700 dark:text-gray-300">
+                  Hola, {user.name}
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="block w-full text-left px-3 py-2 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
+                >
+                  Cerrar Sesión
+                </button>
+              </div>
+            ) : (
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4 space-y-1">
+                <Link
+                  href="/login"
+                  className="block px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 rounded-md transition-colors"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Iniciar Sesión
+                </Link>
+                <Link
+                  href="/register"
+                  className="block px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Registrarse
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </nav>
   );
 }
