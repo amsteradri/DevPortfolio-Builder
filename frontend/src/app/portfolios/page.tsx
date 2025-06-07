@@ -16,6 +16,7 @@ import {
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/contexts/UserContext';
+import { useAlert } from '@/contexts/AlertContext';
 
 interface Portfolio {
   id: number;
@@ -126,6 +127,7 @@ export default function PortfoliosPage() {
   const hasLoaded = useRef(false);
   const router = useRouter();
   const { user, isLoading: userLoading } = useUser();
+  const { showAlert } = useAlert();
 
   // Función para fetch portfolios
   const fetchPortfolios = async (userId: number) => {
@@ -199,14 +201,15 @@ export default function PortfoliosPage() {
         setPortfolios(prev => [newPortfolio, ...prev]);
         setNewPortfolioName('');
         setShowCreateModal(false);
+        showAlert('success', 'Portfolio creado exitosamente');
         router.push(`/editor?portfolio=${newPortfolio.id}`);
       } else {
         const errorData = await response.json();
-        alert(errorData.detail || 'Error al crear portfolio');
+        showAlert('error', errorData.detail || 'Error al crear portfolio');
       }
     } catch (error) {
       console.error('Error creating portfolio:', error);
-      alert('Error al crear portfolio');
+      showAlert('error', 'Error al crear portfolio');
     }
   };
 
@@ -220,12 +223,13 @@ export default function PortfoliosPage() {
         const duplicatedPortfolio = await response.json();
         setPortfolios(prev => [duplicatedPortfolio, ...prev]);
         setActiveDropdown(null);
+        showAlert('success', 'Portfolio duplicado exitosamente');
       } else {
-        alert('Error al duplicar portfolio');
+        showAlert('error', 'Error al duplicar portfolio');
       }
     } catch (error) {
       console.error('Error duplicating portfolio:', error);
-      alert('Error al duplicar portfolio');
+      showAlert('error', 'Error al duplicar portfolio');
     }
   };
 
@@ -240,12 +244,13 @@ export default function PortfoliosPage() {
       if (response.ok) {
         setPortfolios(prev => prev.filter(p => p.id !== portfolioId));
         setActiveDropdown(null);
+        showAlert('success', 'Portfolio eliminado exitosamente');
       } else {
-        alert('Error al eliminar portfolio');
+        showAlert('error', 'Error al eliminar portfolio');
       }
     } catch (error) {
       console.error('Error deleting portfolio:', error);
-      alert('Error al eliminar portfolio');
+      showAlert('error', 'Error al eliminar portfolio');
     }
   };
 
