@@ -14,7 +14,6 @@ import {
   ComponentType,
   COMPONENTS_MAP
 } from '@/components/blocks/components';
-import Image from 'next/image';
 
 interface BlockProperties {
   [key: string]: string | number | boolean | undefined;

@@ -251,7 +251,6 @@ export const HeroWithBackground = ({ preview = false, properties = {} }: HeroPro
     textColor = "#ffffff",
     primaryColor = "#6366f1",
     fontSize = "text-5xl md:text-7xl",
-    padding = "p-8",
     backgroundImage = "https://images.unsplash.com/photo-1504639725590-34d0984388bd?ixlib=rb-4.0.3",
     buttonText = "Ver Portfolio",
     showButton = true

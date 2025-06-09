@@ -1,5 +1,4 @@
 import { Mail, Phone, MapPin, MessageCircle, Globe, Linkedin, Github, Twitter, Instagram, Send, ArrowRight, Star, Clock, Users, Award } from 'lucide-react';
-import Image from 'next/image';
 
 interface ContactProps {
   preview?: boolean;

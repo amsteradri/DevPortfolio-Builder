@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import ClientOnly from '@/components/ClientOnly';
@@ -978,7 +978,7 @@ export default function VisualWebEditor() {
   const [lastSavedHash, setLastSavedHash] = useState<string>('');
   const [portfolioId, setPortfolioId] = useState<number | null>(null);
   const [isPropertiesPanelOpen, setIsPropertiesPanelOpen] = useState(false);
-  const [blockProperties, setBlockProperties] = useState<{[key: string]: any}>({});
+  const [blockProperties, setBlockProperties] = useState<Record<string, Record<string, unknown>>>({});
 
   // Nuevo estado para el modal de compartir
   const [showShareModal, setShowShareModal] = useState(false);
@@ -993,121 +993,31 @@ export default function VisualWebEditor() {
   }, []);
 
   // Función para crear un hash de los datos para comparar cambios
-  const createDataHash = () => {
-    return JSON.stringify({
-      name: projectName.trim(),
-      blocks,
-      blockProperties
-    });
-  };
+  const createDataHash = useCallback(() => {
+    return JSON.stringify(blocks);
+  }, [blocks]);
 
   // Función para guardar el estado del proyecto
-  const saveProjectState = async () => {
-    if (!currentPortfolio || !user || isSaving) {
-      console.log('Skipping save: missing data or already saving');
-      return;
-    }
-
-    // Verificar si realmente hay cambios
-    const currentDataHash = createDataHash();
-    if (currentDataHash === lastSaved) {
-      console.log('No changes detected, skipping save');
-      return;
-    }
-
-    setIsSaving(true);
-
-    const projectState = {
-      name: projectName.trim(),
-      content: {
-        blocks,
-        blockProperties,
-        lastUpdated: new Date().toISOString()
-      }
-    };
-
-    try {
-      console.log('Guardando portfolio:', projectState);
-      
-      const response = await fetch(`http://localhost:8000/api/portfolios/${currentPortfolio.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(projectState),
-      });
-
-      if (response.ok) {
-        const updatedPortfolio = await response.json();
-        setCurrentPortfolio(updatedPortfolio);
-        setLastSaved(currentDataHash); // Actualizar el hash guardado
-        console.log('✅ Portfolio guardado exitosamente en BD');
-        
-        // También guardar en localStorage como backup
-        localStorage.setItem('devportfolio-backup', JSON.stringify({
-          portfolioId: currentPortfolio.id,
-          projectName: projectName,
-          blocks,
-          blockProperties,
-          lastUpdated: new Date().toISOString()
-        }));
-        
-      } else {
-        const errorText = await response.text();
-        console.error('❌ Error al guardar:', errorText);
-        throw new Error(`Error al guardar portfolio: ${response.status}`);
-      }
-    } catch (error) {
-      console.error('❌ Error al guardar en servidor:', error);
-      
-      // Guardar en localStorage como fallback
-      localStorage.setItem('devportfolio-backup', JSON.stringify({
-        portfolioId: currentPortfolio.id,
-        projectName: projectName,
-        blocks,
-        blockProperties,
-        lastUpdated: new Date().toISOString(),
-        needsSync: true
-      }));
-    } finally {
-      setIsSaving(false);
-    }
-  };
+  const saveProjectState = useCallback(async () => {
+    const hash = createDataHash();
+    setLastSavedHash(hash);
+    localStorage.setItem('devportfolio-project', JSON.stringify({
+      blocks,
+      blockProperties,
+      lastUpdated: new Date().toISOString()
+    }));
+  }, [blocks, blockProperties, createDataHash]);
 
   // Cargar portfolio específico
-  const loadPortfolio = async (portfolioId: number) => {
-    try {
-      console.log('Cargando portfolio:', portfolioId);
-      
-      const response = await fetch(`http://localhost:8000/api/portfolios/${portfolioId}`);
-      
-      if (response.ok) {
-        const portfolio = await response.json();
-        console.log('✅ Portfolio cargado:', portfolio);
-        
-        setCurrentPortfolio(portfolio);
-        setProjectName(portfolio.name);
-        
-        if (portfolio.content) {
-          setBlocks(portfolio.content.blocks || []);
-          setBlockProperties(portfolio.content.blockProperties || {});
-        }
-
-        // Establecer el hash inicial después de cargar
-        setTimeout(() => {
-          setLastSaved(createDataHash());
-        }, 100);
-        
-        setIsLoading(false);
-      } else {
-        console.error('❌ Error cargando portfolio:', response.status);
-        router.push('/portfolios');
-      }
-    } catch (error) {
-      console.error('❌ Error loading portfolio:', error);
-      router.push('/portfolios');
+  const loadPortfolio = useCallback(async () => {
+    const savedProject = localStorage.getItem('devportfolio-project');
+    if (savedProject) {
+      const projectData = JSON.parse(savedProject);
+      setBlocks(projectData.blocks || []);
+      setBlockProperties(projectData.blockProperties || {});
+      setLastSavedHash(createDataHash());
     }
-  };
+  }, [createDataHash]);
 
   // Verificar autenticación y cargar portfolio
   useEffect(() => {
@@ -1127,7 +1037,7 @@ export default function VisualWebEditor() {
     } else {
       router.push('/portfolios');
     }
-  }, [searchParams, router]);
+  }, [searchParams, router, loadPortfolio]);
 
   // Auto-guardado SOLO cuando hay cambios reales
   useEffect(() => {
@@ -1147,7 +1057,7 @@ export default function VisualWebEditor() {
         clearTimeout(timeoutId);
       };
     }
-  }, [blocks, blockProperties, projectName, currentPortfolio, user, isLoading, lastSaved]);
+  }, [blocks, blockProperties, projectName, currentPortfolio, user, isLoading, lastSaved, createDataHash, saveProjectState]);
 
   // Función para forzar guardado (para preview)
   const forceSave = async () => {
@@ -1355,29 +1265,23 @@ export default function VisualWebEditor() {
   }, [loadPortfolio]);
 
   useEffect(() => {
-    const hash = createDataHash();
-    if (hash !== lastSavedHash) {
-      saveProjectState();
-    }
-  }, [blocks, createDataHash, lastSavedHash, saveProjectState]);
-
-  useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (isDragging && selectedBlock) {
         const block = blocks.find(b => b.id === selectedBlock);
         if (block) {
-          updateBlock(selectedBlock, {
+          const updatedBlock = {
             ...block,
             x: e.clientX - dragOffset.x,
             y: e.clientY - dragOffset.y
-          });
+          };
+          setBlocks(blocks.map(b => b.id === selectedBlock ? updatedBlock : b));
         }
       }
     };
 
     window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, [isDragging, selectedBlock, blocks, dragOffset, updateBlock]);
+  }, [isDragging, selectedBlock, blocks, dragOffset]);
 
   if (!isMounted || isLoading) {
     return (
