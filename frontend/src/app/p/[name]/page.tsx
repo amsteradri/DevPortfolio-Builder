@@ -16,14 +16,6 @@ interface Portfolio {
   updated_at: string;
 }
 
-interface PortfolioData {
-  blocks: Array<{
-    type: string;
-    variant: number;
-    properties: Record<string, string | number | boolean>;
-  }>;
-}
-
 export default function PortfolioView() {
   const params = useParams();
   const [portfolio, setPortfolio] = useState<Portfolio | null>(null);

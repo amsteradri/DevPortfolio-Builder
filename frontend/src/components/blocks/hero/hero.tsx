@@ -1,5 +1,5 @@
 import { ReactNode, useEffect } from 'react';
-import { Github, Linkedin, Twitter, ArrowRight, ChevronRight, Mail, Phone, ExternalLink } from 'lucide-react';
+import { Github, Linkedin, Twitter, ArrowRight, ChevronRight, Mail } from 'lucide-react';
 import Image from 'next/image';
 
 interface HeroProps {

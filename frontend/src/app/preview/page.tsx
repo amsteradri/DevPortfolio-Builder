@@ -23,21 +23,17 @@ import {
 } from '@/components/blocks/components';
 import Image from 'next/image';
 
-interface ProjectState {
-  projectName: string;
-  blocks: string[];
-  blockProperties: Record<string, Record<string, unknown>>;
-  lastUpdated: string;
-}
-
 interface BlockProperties {
   [key: string]: string | number | boolean | undefined;
 }
 
-interface Block {
-  type: string;
-  variant: number;
-  properties: BlockProperties;
+interface ProjectState {
+  blocks: Array<{
+    type: string;
+    variant: number;
+    properties: BlockProperties;
+  }>;
+  lastUpdated: string;
 }
 
 // Componente para renderizar un bloque en la previsualización

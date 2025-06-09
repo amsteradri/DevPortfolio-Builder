@@ -1,4 +1,4 @@
-import { Github, Linkedin, Twitter, ArrowRight, ChevronRight, Mail, Phone, ExternalLink } from 'lucide-react';
+import { Github, Linkedin, User, Star, MapPin, Download } from 'lucide-react';
 import Image from 'next/image';
 
 interface AboutProps {

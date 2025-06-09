@@ -7,7 +7,8 @@ import ClientOnly from '@/components/ClientOnly';
 import { 
   GripHorizontal, Code, Trash2, Eye, ChevronDown,
   ArrowLeft, ArrowRight, Minus, Maximize2, X, Upload,
-  Share2, Copy, Check, ExternalLink, ArrowUp, ArrowDown
+  Share2, Copy, Check, ExternalLink, ArrowUp, ArrowDown,
+  Github, Linkedin, Twitter, ChevronRight, Mail, Phone
 } from 'lucide-react';
 import {
   ComponentType,
