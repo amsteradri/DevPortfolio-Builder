@@ -1,4 +1,4 @@
-import { ExternalLink, Github, Calendar, Tag, ArrowRight, Star, Eye, Code, Play, Download } from 'lucide-react';
+import { Github, Linkedin, Twitter, ArrowRight, ChevronRight, Mail, Phone, ExternalLink } from 'lucide-react';
 import Image from 'next/image';
 
 interface ProjectsProps {
@@ -278,7 +278,7 @@ export const ProjectsMasonry = ({ preview = false, properties = {} }: ProjectsPr
                         style={{ backgroundColor: primaryColor }}
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <Eye size={16} />
+                        <ExternalLink size={16} />
                         Ver Proyecto
                       </a>
                     )}
@@ -543,7 +543,7 @@ export const ProjectsHorizontal = ({ preview = false, properties = {} }: Project
                       }}
                       onClick={(e) => e.stopPropagation()}
                     >
-                      <Play size={18} />
+                      <ExternalLink size={18} />
                       Ver Demo
                     </a>
                   )}
@@ -556,7 +556,7 @@ export const ProjectsHorizontal = ({ preview = false, properties = {} }: Project
                       style={{ color: textColor }}
                       onClick={(e) => e.stopPropagation()}
                     >
-                      <Code size={18} />
+                      <Github size={18} />
                       Ver Código
                     </a>
                   )}
@@ -646,7 +646,7 @@ export const ProjectsMinimal = ({ preview = false, properties = {} }: ProjectsPr
                     className="ml-8 p-3 rounded-full border border-gray-300 hover:border-gray-400 transition-colors group-hover:translate-x-2 group-hover:scale-110"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <ArrowRight size={20} style={{ color: primaryColor }} />
+                    <ExternalLink size={20} style={{ color: primaryColor }} />
                   </a>
                 )}
               </div>

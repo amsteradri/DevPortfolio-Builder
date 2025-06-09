@@ -14,6 +14,25 @@ import {
   ComponentData,
   COMPONENTS_MAP
 } from '@/components/blocks/components';
+import Image from 'next/image';
+
+interface BlockProperties {
+  [key: string]: string | number | boolean | undefined;
+}
+
+interface Block {
+  id: string;
+  type: string;
+  variant: number;
+  properties: BlockProperties;
+  x: number;
+  y: number;
+}
+
+interface DragData {
+  type: string;
+  variantIndex: number;
+}
 
 // Componente draggable para el sidebar
 const DraggableComponent: React.FC<{
@@ -1178,9 +1197,9 @@ export default function VisualWebEditor() {
     }
   };
 
-  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, type: ComponentType) => {
-    setDraggedItem(type);
-    e.dataTransfer.effectAllowed = 'copy';
+  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, type: string, variantIndex: number) => {
+    const dragData: DragData = { type, variantIndex };
+    e.dataTransfer.setData('component', JSON.stringify(dragData));
   };
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
@@ -1190,12 +1209,12 @@ export default function VisualWebEditor() {
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    const componentData = JSON.parse(e.dataTransfer.getData('component')) as ComponentData;
+    const componentData = JSON.parse(e.dataTransfer.getData('component')) as DragData;
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     
-    addBlock(componentData.type, componentData.variant, x, y);
+    addBlock(componentData.type, componentData.variantIndex, x, y);
   };
 
   const getDragAfterElement = (container: HTMLElement, y: number) => {
@@ -1413,7 +1432,7 @@ export default function VisualWebEditor() {
                     key={type}
                     type={type}
                     data={data}
-                    onDragStart={handleDragStart}
+                    onDragStart={(e) => handleDragStart(e, type, 0)}
                   />
                 ))}
               </div>

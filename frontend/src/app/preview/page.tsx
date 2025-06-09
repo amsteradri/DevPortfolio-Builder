@@ -14,12 +14,14 @@ import {
   ArrowRight,
   ChevronRight,
   Mail,
-  Phone
+  Phone,
+  Download
 } from 'lucide-react';
 import {
   ComponentType,
   COMPONENTS_MAP
 } from '@/components/blocks/components';
+import Image from 'next/image';
 
 interface ProjectState {
   projectName: string;

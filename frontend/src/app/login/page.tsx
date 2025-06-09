@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { LogIn, User, Mail, ArrowRight } from "lucide-react";
+import { LogIn, User, Mail, ArrowRight, Github, Linkedin, Twitter, ChevronRight, Phone } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { useUser } from "@/contexts/UserContext";
