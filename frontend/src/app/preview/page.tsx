@@ -7,7 +7,14 @@ import {
   RefreshCw, 
   Monitor, 
   Smartphone, 
-  Tablet
+  Tablet,
+  Github,
+  Linkedin,
+  Twitter,
+  ArrowRight,
+  ChevronRight,
+  Mail,
+  Phone
 } from 'lucide-react';
 import {
   ComponentType,
@@ -19,6 +26,16 @@ interface ProjectState {
   blocks: string[];
   blockProperties: Record<string, Record<string, unknown>>;
   lastUpdated: string;
+}
+
+interface BlockProperties {
+  [key: string]: string | number | boolean | undefined;
+}
+
+interface Block {
+  type: string;
+  variant: number;
+  properties: BlockProperties;
 }
 
 // Componente para renderizar un bloque en la previsualización
@@ -126,6 +143,21 @@ export default function PreviewPage() {
     link.click();
     
     URL.revokeObjectURL(url);
+  };
+
+  const handlePropertyChange = (property: string, value: string | number | boolean) => {
+    if (selectedBlock) {
+      const block = blocks.find(b => b.id === selectedBlock);
+      if (block) {
+        updateBlock(selectedBlock, {
+          ...block,
+          properties: {
+            ...block.properties,
+            [property]: value
+          }
+        });
+      }
+    }
   };
 
   if (isLoading) {

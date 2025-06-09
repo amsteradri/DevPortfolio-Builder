@@ -16,6 +16,14 @@ interface Portfolio {
   updated_at: string;
 }
 
+interface PortfolioData {
+  blocks: Array<{
+    type: string;
+    variant: number;
+    properties: Record<string, string | number | boolean>;
+  }>;
+}
+
 export default function PortfolioView() {
   const params = useParams();
   const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
@@ -73,8 +81,8 @@ export default function PortfolioView() {
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mb-6">{error}</p>
           <Link 
-            href="/" 
-            className="inline-block px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+            href="/"
+            className="text-indigo-600 hover:text-indigo-500"
           >
             Volver al inicio
           </Link>
@@ -125,8 +133,8 @@ export default function PortfolioView() {
         <p>
           Creado con{' '}
           <Link 
-            href="/" 
-            className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+            href="/"
+            className="text-indigo-600 hover:text-indigo-500"
           >
             DevPortfolio Builder
           </Link>

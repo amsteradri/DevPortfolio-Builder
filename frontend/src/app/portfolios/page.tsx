@@ -20,14 +20,10 @@ import { useAlert } from '@/contexts/AlertContext';
 import Image from 'next/image';
 
 interface Portfolio {
-  id: number;
+  id: string;
   name: string;
-  content: {
-    blocks: string[];
-    blockProperties: Record<string, Record<string, unknown>>;
-    lastUpdated: string;
-  };
-  user_id: number;
+  description: string;
+  image: string;
   created_at: string;
   updated_at: string;
 }
@@ -423,7 +419,15 @@ export default function PortfoliosPage() {
               >
                 {/* Preview real del portfolio */}
                 <div className="p-4">
-                  <PortfolioPreview portfolio={portfolio} />
+                  <div className="relative aspect-video overflow-hidden rounded-lg">
+                    <Image
+                      src={portfolio.image || "/placeholder.png"}
+                      alt={portfolio.name}
+                      width={800}
+                      height={450}
+                      className="object-cover w-full h-full"
+                    />
+                  </div>
                 </div>
 
                 <div className="p-6 pt-2">

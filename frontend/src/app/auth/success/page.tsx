@@ -149,13 +149,15 @@ export default function AuthSuccessPage() {
           </h1>
           <div className="flex items-center justify-center gap-3 my-4">
             {userInfo.picture && (
-              <Image 
-                src={userInfo.picture} 
-                alt="Profile" 
-                width={48}
-                height={48}
-                className="rounded-full border-2 border-blue-200"
-              />
+              <div className="relative w-24 h-24 mx-auto mb-6">
+                <Image
+                  src={userInfo.picture}
+                  alt={userInfo.name}
+                  width={96}
+                  height={96}
+                  className="rounded-full"
+                />
+              </div>
             )}
             <div>
               <p className="text-xl text-gray-600 dark:text-gray-400 font-medium">

@@ -1190,42 +1190,12 @@ export default function VisualWebEditor() {
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
+    const componentData = JSON.parse(e.dataTransfer.getData('component')) as ComponentData;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
     
-    if (draggedItem) {
-      try {
-        const dragData = JSON.parse(e.dataTransfer.getData('text/plain'));
-        // Usar timestamp estable al renderizar, no dinámico
-        const timestamp = Date.now();
-        const newBlock = `${dragData.type}-${dragData.variantIndex}-${timestamp}`;
-        setBlocks(prev => [...prev, newBlock]);
-      } catch {
-        // Fallback por si no hay datos de variante
-        const timestamp = Date.now();
-        const newBlock = `${draggedItem}-0-${timestamp}`;
-        setBlocks(prev => [...prev, newBlock]);
-      }
-      setDraggedItem(null);
-    } else {
-      // Reordenar componentes existentes
-      const draggedId = e.dataTransfer.getData('text/plain');
-      const dropZone = e.currentTarget;
-      const afterElement = getDragAfterElement(dropZone, e.clientY);
-      
-      if (afterElement == null) {
-        setBlocks(prev => {
-          const filtered = prev.filter(id => id !== draggedId);
-          return [...filtered, draggedId];
-        });
-      } else {
-        const afterId = afterElement.dataset.id;
-        setBlocks(prev => {
-          const filtered = prev.filter(id => id !== draggedId);
-          const afterIndex = filtered.findIndex(id => id === afterId);
-          filtered.splice(afterIndex, 0, draggedId);
-          return filtered;
-        });
-      }
-    }
+    addBlock(componentData.type, componentData.variant, x, y);
   };
 
   const getDragAfterElement = (container: HTMLElement, y: number) => {
@@ -1376,14 +1346,21 @@ export default function VisualWebEditor() {
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      if (isDragging) {
-        // ... existing code ...
+      if (isDragging && selectedBlockId) {
+        const block = blocks.find(b => b.id === selectedBlockId);
+        if (block) {
+          updateBlock(selectedBlockId, {
+            ...block,
+            x: e.clientX - dragOffset.x,
+            y: e.clientY - dragOffset.y
+          });
+        }
       }
     };
 
     window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, [isDragging, handleMouseMove]);
+  }, [isDragging, selectedBlockId, blocks, dragOffset, updateBlock]);
 
   if (!isMounted || isLoading) {
     return (
