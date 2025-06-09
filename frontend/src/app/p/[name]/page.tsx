@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import Link from 'next/link';
 import { COMPONENTS_MAP } from '@/components/blocks/components';
 
 interface Portfolio {
@@ -10,7 +9,7 @@ interface Portfolio {
   name: string;
   content: {
     blocks: string[];
-    blockProperties: Record<string, Record<string, unknown>>;
+    blockProperties: Record<string, any>;
   };
   created_at: string;
   updated_at: string;
@@ -72,12 +71,12 @@ export default function PortfolioView() {
             Error al cargar portfolio
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mb-6">{error}</p>
-          <Link 
-            href="/"
-            className="text-indigo-600 hover:text-indigo-500"
+          <a 
+            href="/" 
+            className="inline-block px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
           >
             Volver al inicio
-          </Link>
+          </a>
         </div>
       </main>
     );
@@ -124,12 +123,12 @@ export default function PortfolioView() {
       <footer className="bg-gray-100 dark:bg-gray-800 py-4 text-center text-sm text-gray-600 dark:text-gray-400">
         <p>
           Creado con{' '}
-          <Link 
-            href="/"
-            className="text-indigo-600 hover:text-indigo-500"
+          <a 
+            href="/" 
+            className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
           >
             DevPortfolio Builder
-          </Link>
+          </a>
         </p>
       </footer>
     </main>

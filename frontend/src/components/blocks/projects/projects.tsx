@@ -1,5 +1,4 @@
-import { Github, ExternalLink } from 'lucide-react';
-import Image from 'next/image';
+import { ExternalLink, Github, Calendar, Tag, ArrowRight, Star, Eye, Code, Play, Download } from 'lucide-react';
 
 interface ProjectsProps {
   preview?: boolean;
@@ -95,15 +94,11 @@ export const ProjectsGrid = ({ preview = false, properties = {} }: ProjectsProps
         {projectsToShow.map((project, index) => (
           <div key={index} className={`group ${properties.borderRadius || borderRadius} overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2`} style={{ backgroundColor: '#ffffff' }}>
             <div className="relative overflow-hidden">
-              <div className="relative aspect-video overflow-hidden rounded-lg">
-                <Image 
-                  src={project.image || "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800&h=450&fit=crop"} 
-                  alt={project.title}
-                  width={800}
-                  height={450}
-                  className="object-cover w-full h-full"
-                />
-              </div>
+              <img 
+                src={project.image} 
+                alt={project.title}
+                className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
+              />
               <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-300 flex items-center justify-center">
                 {(properties.showLinks !== undefined ? properties.showLinks : showLinks) && (
                   <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-3">
@@ -234,15 +229,12 @@ export const ProjectsMasonry = ({ preview = false, properties = {} }: ProjectsPr
                 </div>
               )}
               <div className="relative overflow-hidden">
-                <div className="relative aspect-video overflow-hidden rounded-lg">
-                  <Image 
-                    src={project.image || "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800&h=450&fit=crop"} 
-                    alt={project.title}
-                    width={800}
-                    height={450}
-                    className="object-cover w-full h-full"
-                  />
-                </div>
+                <img 
+                  src={project.image} 
+                  alt={project.title}
+                  className="w-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  style={{ height: `${200 + (index % 3) * 50}px` }}
+                />
               </div>
               <div className="p-6">
                 <h3 className="text-xl font-bold mb-3" style={{ color: textColor }}>
@@ -278,7 +270,7 @@ export const ProjectsMasonry = ({ preview = false, properties = {} }: ProjectsPr
                         style={{ backgroundColor: primaryColor }}
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <ExternalLink size={16} />
+                        <Eye size={16} />
                         Ver Proyecto
                       </a>
                     )}
@@ -380,15 +372,11 @@ export const ProjectsTimeline = ({ preview = false, properties = {} }: ProjectsP
               {/* Contenido del proyecto */}
               <div className="flex-1 max-w-lg">
                 <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
-                  <div className="relative aspect-video overflow-hidden rounded-lg">
-                    <Image 
-                      src={project.image || "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800&h=450&fit=crop"} 
-                      alt={project.title}
-                      width={800}
-                      height={450}
-                      className="object-cover w-full h-full"
-                    />
-                  </div>
+                  <img 
+                    src={project.image} 
+                    alt={project.title}
+                    className="w-full h-48 object-cover"
+                  />
                   <div className="p-6">
                     <div className="flex items-start justify-between mb-3">
                       <h3 className="text-xl font-bold" style={{ color: textColor }}>
@@ -487,15 +475,11 @@ export const ProjectsHorizontal = ({ preview = false, properties = {} }: Project
             {/* Imagen */}
             <div className="flex-1">
               <div className="relative group overflow-hidden rounded-2xl">
-                <div className="relative aspect-video overflow-hidden rounded-lg">
-                  <Image 
-                    src={project.image || "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800&h=450&fit=crop"} 
-                    alt={project.title}
-                    width={800}
-                    height={450}
-                    className="object-cover w-full h-full"
-                  />
-                </div>
+                <img 
+                  src={project.image} 
+                  alt={project.title}
+                  className="w-full h-80 object-cover group-hover:scale-105 transition-transform duration-500"
+                />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
               </div>
             </div>
@@ -543,7 +527,7 @@ export const ProjectsHorizontal = ({ preview = false, properties = {} }: Project
                       }}
                       onClick={(e) => e.stopPropagation()}
                     >
-                      <ExternalLink size={18} />
+                      <Play size={18} />
                       Ver Demo
                     </a>
                   )}
@@ -556,7 +540,7 @@ export const ProjectsHorizontal = ({ preview = false, properties = {} }: Project
                       style={{ color: textColor }}
                       onClick={(e) => e.stopPropagation()}
                     >
-                      <Github size={18} />
+                      <Code size={18} />
                       Ver Código
                     </a>
                   )}
@@ -646,7 +630,7 @@ export const ProjectsMinimal = ({ preview = false, properties = {} }: ProjectsPr
                     className="ml-8 p-3 rounded-full border border-gray-300 hover:border-gray-400 transition-colors group-hover:translate-x-2 group-hover:scale-110"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <ExternalLink size={20} style={{ color: primaryColor }} />
+                    <ArrowRight size={20} style={{ color: primaryColor }} />
                   </a>
                 )}
               </div>

@@ -120,4 +120,6 @@ logs
 # Docker volumes
 postgres_data/
 .env
-.env
+
+*.identifier
+
