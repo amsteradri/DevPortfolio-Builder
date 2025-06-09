@@ -7,10 +7,8 @@ import ClientOnly from '@/components/ClientOnly';
 import { 
   GripHorizontal, Code, Trash2, Eye, ChevronDown,
   ArrowLeft, ArrowRight, Minus, Maximize2, X, Upload,
-  Share2, Copy, Check, ExternalLink, ArrowUp, ArrowDown,
-  Github, Linkedin, Twitter, ChevronRight, Mail, Phone,
-  RefreshCw, Monitor, Smartphone, Tablet, Download,
-  Plus, Settings, ZoomIn, ZoomOut, Save, Loader2
+  Share2, Copy, Check, ExternalLink, ArrowUp, ArrowDown
+  
 } from 'lucide-react';
 import {
   ComponentType,
@@ -183,8 +181,7 @@ const PropertiesPanel: React.FC<{
   selectedBlockId: string | null;
   blockProperties: Record<string, Record<string, unknown>>;
   onUpdateProperties: (blockId: string, properties: Record<string, unknown>) => void;
-  onClose: () => void;
-}> = ({ selectedBlockId, blockProperties, onUpdateProperties, onClose }) => {
+}> = ({ selectedBlockId, blockProperties, onUpdateProperties }) => {
   if (!selectedBlockId) return null;
 
   const [componentType, variantIndex] = selectedBlockId.split('-') as [ComponentType, string];
@@ -210,13 +207,13 @@ const PropertiesPanel: React.FC<{
   );
 
   const renderTextInput = (label: string, key: string, placeholder: string = "") => (
-    <div>
-      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+    <div className="mb-4">
+      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
         {label}
       </label>
       <input
         type="text"
-        value={currentProperties[key] || ''}
+        value={(currentProperties[key] as string) || ''}
         onChange={(e) => updateProperty(key, e.target.value)}
         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
         placeholder={placeholder}
@@ -225,12 +222,12 @@ const PropertiesPanel: React.FC<{
   );
 
   const renderTextarea = (label: string, key: string, placeholder: string = "") => (
-    <div>
-      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+    <div className="mb-4">
+      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
         {label}
       </label>
       <textarea
-        value={currentProperties[key] || ''}
+        value={(currentProperties[key] as string) || ''}
         onChange={(e) => updateProperty(key, e.target.value)}
         rows={3}
         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none"
@@ -240,20 +237,20 @@ const PropertiesPanel: React.FC<{
   );
 
   const renderColorInput = (label: string, key: string, defaultValue: string = '#ffffff') => (
-    <div>
-      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+    <div className="mb-4">
+      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
         {label}
       </label>
-      <div className="flex items-center gap-2">
+      <div className="flex gap-2">
         <input
           type="color"
-          value={currentProperties[key] || defaultValue}
+          value={(currentProperties[key] as string) || defaultValue}
           onChange={(e) => updateProperty(key, e.target.value)}
           className="w-12 h-10 border border-gray-300 dark:border-gray-600 rounded cursor-pointer"
         />
         <input
           type="text"
-          value={currentProperties[key] || defaultValue}
+          value={(currentProperties[key] as string) || defaultValue}
           onChange={(e) => updateProperty(key, e.target.value)}
           className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
         />
@@ -262,12 +259,12 @@ const PropertiesPanel: React.FC<{
   );
 
   const renderSelectInput = (label: string, key: string, options: {value: string, label: string}[], defaultValue: string = '') => (
-    <div>
-      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+    <div className="mb-4">
+      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
         {label}
       </label>
       <select
-        value={currentProperties[key] || defaultValue}
+        value={(currentProperties[key] as string) || defaultValue}
         onChange={(e) => updateProperty(key, e.target.value)}
         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
       >
@@ -962,21 +959,17 @@ const PropertiesPanel: React.FC<{
 }
 
 export default function VisualWebEditor() {
-  const [currentPortfolio, setCurrentPortfolio] = useState<Record<string, unknown>>({});
   const [user, setUser] = useState<Record<string, unknown> | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<string>('');
   const searchParams = useSearchParams();
   const router = useRouter();
   
-  const [projectName, setProjectName] = useState<string>('');
   const [blocks, setBlocks] = useState<Block[]>([]);
   const [selectedBlock, setSelectedBlock] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
-  const [lastSavedHash, setLastSavedHash] = useState<string>('');
   const [portfolioId, setPortfolioId] = useState<string>('');
   const [isPropertiesPanelOpen, setIsPropertiesPanelOpen] = useState(false);
   const [blockProperties, setBlockProperties] = useState<Record<string, Record<string, unknown>>>({});
@@ -1123,21 +1116,6 @@ export default function VisualWebEditor() {
     addBlock(componentData.type, componentData.variantIndex, x, y);
   };
 
-  const getDragAfterElement = (container: HTMLElement, y: number) => {
-    const draggableElements = [...container.querySelectorAll('[data-id]:not(.dragging)')] as HTMLElement[];
-    
-    return draggableElements.reduce((closest, child) => {
-      const box = child.getBoundingClientRect();
-      const offset = y - box.top - box.height / 2;
-      
-      if (offset < 0 && offset > closest.offset) {
-        return { offset: offset, element: child };
-      } else {
-        return closest;
-      }
-    }, { offset: Number.NEGATIVE_INFINITY, element: null as HTMLElement | null }).element;
-  };
-
   const deleteBlock = (id: string) => {
     setBlocks(prev => prev.filter(blockId => blockId !== id));
   };
@@ -1146,12 +1124,6 @@ export default function VisualWebEditor() {
     setIsDragging(true);
     document.body.style.cursor = 'col-resize';
     document.body.style.userSelect = 'none';
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-    document.body.style.cursor = 'default';
-    document.body.style.userSelect = 'auto';
   };
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
@@ -1592,7 +1564,6 @@ export default function VisualWebEditor() {
                     selectedBlockId={selectedBlock}
                     blockProperties={blockProperties}
                     onUpdateProperties={handlePropertiesUpdate}
-                    onClose={handleClosePropertiesPanel}
                   />
                 </div>
               </div>
