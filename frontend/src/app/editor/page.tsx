@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import ClientOnly from '@/components/ClientOnly';
@@ -8,32 +8,12 @@ import {
   GripHorizontal, Code, Trash2, Eye, ChevronDown,
   ArrowLeft, ArrowRight, Minus, Maximize2, X, Upload,
   Share2, Copy, Check, ExternalLink, ArrowUp, ArrowDown
-  
 } from 'lucide-react';
 import {
   ComponentType,
   ComponentData,
   COMPONENTS_MAP
 } from '@/components/blocks/components';
-import Image from 'next/image';
-
-interface BlockProperties {
-  [key: string]: string | number | boolean | undefined;
-}
-
-interface Block {
-  id: string;
-  type: string;
-  variant: number;
-  properties: BlockProperties;
-  x: number;
-  y: number;
-}
-
-interface DragData {
-  type: string;
-  variantIndex: number;
-}
 
 // Componente draggable para el sidebar
 const DraggableComponent: React.FC<{
@@ -129,9 +109,9 @@ const SortableBlock: React.FC<{
   onDelete: (id: string) => void;
   onSelect: (id: string) => void;
   isSelected: boolean;
-  properties?: Record<string, unknown>;
+  properties?: any;
 }> = ({ id, onDelete, onSelect, isSelected, properties = {} }) => {
-  const [isDragging] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   
   const [componentType, variantIndex] = id.split('-') as [ComponentType, string];
   const componentData = COMPONENTS_MAP[componentType];
@@ -143,6 +123,9 @@ const SortableBlock: React.FC<{
     e.stopPropagation();
     onSelect(id);
   };
+
+  // Usar el ID como base para evitar IDs dinámicos
+  const blockId = `block-${id}`;
 
   return (
     <div 
@@ -179,15 +162,17 @@ const SortableBlock: React.FC<{
 // Nuevo componente para el panel de propiedades
 const PropertiesPanel: React.FC<{
   selectedBlockId: string | null;
-  blockProperties: Record<string, Record<string, unknown>>;
-  onUpdateProperties: (blockId: string, properties: Record<string, unknown>) => void;
-}> = ({ selectedBlockId, blockProperties, onUpdateProperties }) => {
+  blockProperties: {[key: string]: any};
+  onUpdateProperties: (blockId: string, properties: any) => void;
+  onClose: () => void;
+}> = ({ selectedBlockId, blockProperties, onUpdateProperties, onClose }) => {
   if (!selectedBlockId) return null;
 
-  const [componentType] = selectedBlockId.split('-') as [ComponentType, string];
+  const [componentType, variantIndex] = selectedBlockId.split('-') as [ComponentType, string];
+  const componentData = COMPONENTS_MAP[componentType];
   const currentProperties = blockProperties[selectedBlockId] || {};
 
-  const updateProperty = (key: string, value: unknown) => {
+  const updateProperty = (key: string, value: any) => {
     onUpdateProperties(selectedBlockId, {
       ...currentProperties,
       [key]: value
@@ -206,13 +191,13 @@ const PropertiesPanel: React.FC<{
   );
 
   const renderTextInput = (label: string, key: string, placeholder: string = "") => (
-    <div className="mb-4">
-      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+    <div>
+      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
         {label}
       </label>
       <input
         type="text"
-        value={(currentProperties[key] as string) || ''}
+        value={currentProperties[key] || ''}
         onChange={(e) => updateProperty(key, e.target.value)}
         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
         placeholder={placeholder}
@@ -221,12 +206,12 @@ const PropertiesPanel: React.FC<{
   );
 
   const renderTextarea = (label: string, key: string, placeholder: string = "") => (
-    <div className="mb-4">
-      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+    <div>
+      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
         {label}
       </label>
       <textarea
-        value={(currentProperties[key] as string) || ''}
+        value={currentProperties[key] || ''}
         onChange={(e) => updateProperty(key, e.target.value)}
         rows={3}
         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none"
@@ -236,20 +221,20 @@ const PropertiesPanel: React.FC<{
   );
 
   const renderColorInput = (label: string, key: string, defaultValue: string = '#ffffff') => (
-    <div className="mb-4">
-      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+    <div>
+      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
         {label}
       </label>
-      <div className="flex gap-2">
+      <div className="flex items-center gap-2">
         <input
           type="color"
-          value={(currentProperties[key] as string) || defaultValue}
+          value={currentProperties[key] || defaultValue}
           onChange={(e) => updateProperty(key, e.target.value)}
           className="w-12 h-10 border border-gray-300 dark:border-gray-600 rounded cursor-pointer"
         />
         <input
           type="text"
-          value={(currentProperties[key] as string) || defaultValue}
+          value={currentProperties[key] || defaultValue}
           onChange={(e) => updateProperty(key, e.target.value)}
           className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
         />
@@ -258,12 +243,12 @@ const PropertiesPanel: React.FC<{
   );
 
   const renderSelectInput = (label: string, key: string, options: {value: string, label: string}[], defaultValue: string = '') => (
-    <div className="mb-4">
-      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+    <div>
+      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
         {label}
       </label>
       <select
-        value={(currentProperties[key] as string) || defaultValue}
+        value={currentProperties[key] || defaultValue}
         onChange={(e) => updateProperty(key, e.target.value)}
         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
       >
@@ -292,7 +277,7 @@ const PropertiesPanel: React.FC<{
   );
 
   // Función para manejar la subida de archivos de imagen
-  const handleImageUpload = (key: string, file: File): void => {
+  const handleImageUpload = (key: string, file: File) => {
     if (file && file.type.startsWith('image/')) {
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -359,7 +344,7 @@ const PropertiesPanel: React.FC<{
       {/* Vista previa de la imagen */}
       {currentProperties[key] && (
         <div className="relative">
-          <Image 
+          <img 
             src={currentProperties[key]} 
             alt="Vista previa" 
             className="w-full h-32 object-cover rounded-md border border-gray-200 dark:border-gray-600"
@@ -499,7 +484,7 @@ const PropertiesPanel: React.FC<{
             </div>
             {currentProperties.profileImage && (
               <div className="mt-2">
-                <Image 
+                <img 
                   src={currentProperties.profileImage} 
                   alt="Preview perfil" 
                   className="w-16 h-16 object-cover rounded-full border"
@@ -549,7 +534,7 @@ const PropertiesPanel: React.FC<{
             </div>
             {currentProperties.backgroundImage && (
               <div className="mt-2">
-                <Image 
+                <img 
                   src={currentProperties.backgroundImage} 
                   alt="Preview fondo" 
                   className="w-full h-20 object-cover rounded border"
@@ -596,8 +581,8 @@ const PropertiesPanel: React.FC<{
       {(componentType === 'projects') && renderPropertySection("🚀 Gestión de Proyectos", (
         <div className="space-y-4">
           {/* Lista de proyectos */}
-          {currentProperties.projects && Array.isArray(currentProperties.projects) && currentProperties.projects.length > 0 ? (
-            currentProperties.projects.map((project: Project, index: number) => (
+          {currentProperties.projects && currentProperties.projects.length > 0 ? (
+            currentProperties.projects.map((project: any, index: number) => (
               <div key={index} className="border rounded-lg p-4 space-y-3 bg-gray-50 dark:bg-gray-800">
                 <div className="flex items-center justify-between">
                   <h4 className="font-medium text-gray-900 dark:text-white">Proyecto {index + 1}</h4>
@@ -691,7 +676,11 @@ const PropertiesPanel: React.FC<{
                 </div>
               </div>
             ))
-          ) : null}
+          ) : (
+            <div className="text-center py-4 text-gray-500 dark:text-gray-400 text-sm">
+              No hay proyectos agregados aún
+            </div>
+          )}
           
           {/* Botón para añadir proyecto */}
           <button
@@ -804,8 +793,8 @@ const PropertiesPanel: React.FC<{
       {(componentType === 'about') && renderPropertySection("📅 Timeline", (
         <div className="space-y-4">
           {/* Lista de elementos del timeline */}
-          {currentProperties.timeline && Array.isArray(currentProperties.timeline) && currentProperties.timeline.length > 0 ? (
-            currentProperties.timeline.map((item: TimelineItem, index: number) => (
+          {currentProperties.timeline && currentProperties.timeline.length > 0 ? (
+            currentProperties.timeline.map((item: any, index: number) => (
               <div key={index} className="border rounded-lg p-4 space-y-3 bg-gray-50 dark:bg-gray-800">
                 <div className="flex items-center justify-between">
                   <h4 className="font-medium text-gray-900 dark:text-white">Evento {index + 1}</h4>
@@ -874,7 +863,11 @@ const PropertiesPanel: React.FC<{
                 </div>
               </div>
             ))
-          ) : null}
+          ) : (
+            <div className="text-center py-4 text-gray-500 dark:text-gray-400 text-sm">
+              No hay eventos en el timeline aún
+            </div>
+          )}
           
           {/* Botón para añadir evento al timeline */}
           <button
@@ -950,18 +943,23 @@ const PropertiesPanel: React.FC<{
 }
 
 export default function VisualWebEditor() {
-  const [user, setUser] = useState<Record<string, unknown> | null>(null);
+  const [currentPortfolio, setCurrentPortfolio] = useState<any>(null);
+  const [user, setUser] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [lastSaved, setLastSaved] = useState<string>('');
+  const [lastSaved, setLastSaved] = useState<string>(''); // Para comparar cambios
   const searchParams = useSearchParams();
   const router = useRouter();
   
-  const [blocks, setBlocks] = useState<Block[]>([]);
-  const [selectedBlock, setSelectedBlock] = useState<string | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [zoom, setZoom] = useState(1);
+  const [projectName, setProjectName] = useState('');
+  const [blocks, setBlocks] = useState<string[]>([]);
+  const [draggedItem, setDraggedItem] = useState<ComponentType | null>(null);
+  const [sidebarWidth, setSidebarWidth] = useState(600);
+  const [isResizing, setIsResizing] = useState(false);
+  const [zoom, setZoom] = useState(100);
+  const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
   const [isPropertiesPanelOpen, setIsPropertiesPanelOpen] = useState(false);
-  const [blockProperties, setBlockProperties] = useState<Record<string, Record<string, unknown>>>({});
+  const [blockProperties, setBlockProperties] = useState<{[key: string]: any}>({});
 
   // Nuevo estado para el modal de compartir
   const [showShareModal, setShowShareModal] = useState(false);
@@ -976,31 +974,121 @@ export default function VisualWebEditor() {
   }, []);
 
   // Función para crear un hash de los datos para comparar cambios
-  const createDataHash = useCallback(() => {
-    return JSON.stringify(blocks);
-  }, [blocks]);
+  const createDataHash = () => {
+    return JSON.stringify({
+      name: projectName.trim(),
+      blocks,
+      blockProperties
+    });
+  };
 
   // Función para guardar el estado del proyecto
-  const saveProjectState = useCallback(async () => {
-    const hash = createDataHash();
-    setLastSavedHash(hash);
-    localStorage.setItem('devportfolio-project', JSON.stringify({
-      blocks,
-      blockProperties,
-      lastUpdated: new Date().toISOString()
-    }));
-  }, [blocks, blockProperties, createDataHash]);
+  const saveProjectState = async () => {
+    if (!currentPortfolio || !user || isSaving) {
+      console.log('Skipping save: missing data or already saving');
+      return;
+    }
+
+    // Verificar si realmente hay cambios
+    const currentDataHash = createDataHash();
+    if (currentDataHash === lastSaved) {
+      console.log('No changes detected, skipping save');
+      return;
+    }
+
+    setIsSaving(true);
+
+    const projectState = {
+      name: projectName.trim(),
+      content: {
+        blocks,
+        blockProperties,
+        lastUpdated: new Date().toISOString()
+      }
+    };
+
+    try {
+      console.log('Guardando portfolio:', projectState);
+      
+      const response = await fetch(`http://localhost:8000/api/portfolios/${currentPortfolio.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(projectState),
+      });
+
+      if (response.ok) {
+        const updatedPortfolio = await response.json();
+        setCurrentPortfolio(updatedPortfolio);
+        setLastSaved(currentDataHash); // Actualizar el hash guardado
+        console.log('✅ Portfolio guardado exitosamente en BD');
+        
+        // También guardar en localStorage como backup
+        localStorage.setItem('devportfolio-backup', JSON.stringify({
+          portfolioId: currentPortfolio.id,
+          projectName: projectName,
+          blocks,
+          blockProperties,
+          lastUpdated: new Date().toISOString()
+        }));
+        
+      } else {
+        const errorText = await response.text();
+        console.error('❌ Error al guardar:', errorText);
+        throw new Error(`Error al guardar portfolio: ${response.status}`);
+      }
+    } catch (error) {
+      console.error('❌ Error al guardar en servidor:', error);
+      
+      // Guardar en localStorage como fallback
+      localStorage.setItem('devportfolio-backup', JSON.stringify({
+        portfolioId: currentPortfolio.id,
+        projectName: projectName,
+        blocks,
+        blockProperties,
+        lastUpdated: new Date().toISOString(),
+        needsSync: true
+      }));
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   // Cargar portfolio específico
-  const loadPortfolio = useCallback(async () => {
-    const savedProject = localStorage.getItem('devportfolio-project');
-    if (savedProject) {
-      const projectData = JSON.parse(savedProject);
-      setBlocks(projectData.blocks || []);
-      setBlockProperties(projectData.blockProperties || {});
-      setLastSavedHash(createDataHash());
+  const loadPortfolio = async (portfolioId: number) => {
+    try {
+      console.log('Cargando portfolio:', portfolioId);
+      
+      const response = await fetch(`http://localhost:8000/api/portfolios/${portfolioId}`);
+      
+      if (response.ok) {
+        const portfolio = await response.json();
+        console.log('✅ Portfolio cargado:', portfolio);
+        
+        setCurrentPortfolio(portfolio);
+        setProjectName(portfolio.name);
+        
+        if (portfolio.content) {
+          setBlocks(portfolio.content.blocks || []);
+          setBlockProperties(portfolio.content.blockProperties || {});
+        }
+
+        // Establecer el hash inicial después de cargar
+        setTimeout(() => {
+          setLastSaved(createDataHash());
+        }, 100);
+        
+        setIsLoading(false);
+      } else {
+        console.error('❌ Error cargando portfolio:', response.status);
+        router.push('/portfolios');
+      }
+    } catch (error) {
+      console.error('❌ Error loading portfolio:', error);
+      router.push('/portfolios');
     }
-  }, [createDataHash]);
+  };
 
   // Verificar autenticación y cargar portfolio
   useEffect(() => {
@@ -1020,26 +1108,31 @@ export default function VisualWebEditor() {
     } else {
       router.push('/portfolios');
     }
-  }, [searchParams, router, loadPortfolio]);
+  }, [searchParams, router]);
 
   // Auto-guardado SOLO cuando hay cambios reales
   useEffect(() => {
-    if (!user || !lastSaved) return;
+    if (!currentPortfolio || !user || isLoading || !lastSaved) return;
 
     const currentDataHash = createDataHash();
     
-    if (currentDataHash !== lastSavedHash) {
-      const saveTimeout = setTimeout(() => {
+    // Solo guardar si hay cambios reales
+    if (currentDataHash !== lastSaved) {
+      console.log('🔄 Cambios detectados, programando guardado...');
+      
+      const timeoutId = setTimeout(() => {
         saveProjectState();
-      }, 2000);
+      }, 1500); // Reducido a 1.5 segundos
 
-      return () => clearTimeout(saveTimeout);
+      return () => {
+        clearTimeout(timeoutId);
+      };
     }
-  }, [blocks, blockProperties, lastSaved, createDataHash, saveProjectState, user, lastSavedHash]);
+  }, [blocks, blockProperties, projectName, currentPortfolio, user, isLoading, lastSaved]);
 
   // Función para forzar guardado (para preview)
   const forceSave = async () => {
-    if (!user) return;
+    if (!currentPortfolio || !user) return;
     
     setIsSaving(true);
     await saveProjectState();
@@ -1047,7 +1140,7 @@ export default function VisualWebEditor() {
 
   // Función para abrir preview
   const openPreview = async () => {
-    if (!user) return;
+    if (!currentPortfolio) return;
     
     // Guardar antes de abrir preview solo si hay cambios
     const currentDataHash = createDataHash();
@@ -1072,17 +1165,25 @@ export default function VisualWebEditor() {
     return createDataHash() !== lastSaved;
   };
 
+  // Limpiar estado (no debería usarse normalmente)
+  const clearProjectState = () => {
+    setBlocks([]);
+    setBlockProperties({});
+    setSelectedBlockId(null);
+    setIsPropertiesPanelOpen(false);
+  };
+
   // Función para deseleccionar al hacer click en el canvas
   const handleCanvasClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
-      setSelectedBlock(null);
+      setSelectedBlockId(null);
       setIsPropertiesPanelOpen(false);
     }
   };
 
-  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, type: string, variantIndex: number) => {
-    const dragData: DragData = { type, variantIndex };
-    e.dataTransfer.setData('component', JSON.stringify(dragData));
+  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, type: ComponentType) => {
+    setDraggedItem(type);
+    e.dataTransfer.effectAllowed = 'copy';
   };
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
@@ -1092,12 +1193,57 @@ export default function VisualWebEditor() {
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    const componentData = JSON.parse(e.dataTransfer.getData('component')) as DragData;
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
     
-    addBlock(componentData.type, componentData.variantIndex, x, y);
+    if (draggedItem) {
+      try {
+        const dragData = JSON.parse(e.dataTransfer.getData('text/plain'));
+        // Usar timestamp estable al renderizar, no dinámico
+        const timestamp = Date.now();
+        const newBlock = `${dragData.type}-${dragData.variantIndex}-${timestamp}`;
+        setBlocks(prev => [...prev, newBlock]);
+      } catch {
+        // Fallback por si no hay datos de variante
+        const timestamp = Date.now();
+        const newBlock = `${draggedItem}-0-${timestamp}`;
+        setBlocks(prev => [...prev, newBlock]);
+      }
+      setDraggedItem(null);
+    } else {
+      // Reordenar componentes existentes
+      const draggedId = e.dataTransfer.getData('text/plain');
+      const dropZone = e.currentTarget;
+      const afterElement = getDragAfterElement(dropZone, e.clientY);
+      
+      if (afterElement == null) {
+        setBlocks(prev => {
+          const filtered = prev.filter(id => id !== draggedId);
+          return [...filtered, draggedId];
+        });
+      } else {
+        const afterId = afterElement.dataset.id;
+        setBlocks(prev => {
+          const filtered = prev.filter(id => id !== draggedId);
+          const afterIndex = filtered.findIndex(id => id === afterId);
+          filtered.splice(afterIndex, 0, draggedId);
+          return filtered;
+        });
+      }
+    }
+  };
+
+  const getDragAfterElement = (container: HTMLElement, y: number) => {
+    const draggableElements = [...container.querySelectorAll('[data-id]:not(.dragging)')] as HTMLElement[];
+    
+    return draggableElements.reduce((closest, child) => {
+      const box = child.getBoundingClientRect();
+      const offset = y - box.top - box.height / 2;
+      
+      if (offset < 0 && offset > closest.offset) {
+        return { offset: offset, element: child };
+      } else {
+        return closest;
+      }
+    }, { offset: Number.NEGATIVE_INFINITY, element: null as HTMLElement | null }).element;
   };
 
   const deleteBlock = (id: string) => {
@@ -1105,36 +1251,36 @@ export default function VisualWebEditor() {
   };
 
   const handleMouseDown = () => {
-    setIsDragging(true);
+    setIsResizing(true);
     document.body.style.cursor = 'col-resize';
     document.body.style.userSelect = 'none';
   };
 
-  const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (isDragging && selectedBlock) {
-      const block = blocks.find(b => b.id === selectedBlock);
-      if (block) {
-        const newBlocks = blocks.map(b => {
-          if (b.id === selectedBlock) {
-            return {
-              ...b,
-              x: e.clientX - dragOffset.x,
-              y: e.clientY - dragOffset.y
-            };
-          }
-          return b;
-        });
-        setBlocks(newBlocks);
+  const handleMouseUp = () => {
+    setIsResizing(false);
+    document.body.style.cursor = 'default';
+    document.body.style.userSelect = 'auto';
+  };
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (isResizing) {
+      const newWidth = e.clientX;
+      if (newWidth >= 300 && newWidth <= 800) { // límites mín y máx
+        setSidebarWidth(newWidth);
       }
     }
-  }, [isDragging, selectedBlock, blocks, dragOffset]);
+  };
 
+  // Añadir los event listeners
   useEffect(() => {
     document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [handleMouseMove]);
+  }, [isResizing]);
 
   const handleZoomChange = (newZoom: number) => {
     if (newZoom >= 25 && newZoom <= 200) { // limitamos el zoom entre 25% y 200%
@@ -1144,11 +1290,11 @@ export default function VisualWebEditor() {
 
   // Funciones del panel de propiedades
   const handleBlockSelect = (blockId: string) => {
-    setSelectedBlock(blockId);
+    setSelectedBlockId(blockId);
     setIsPropertiesPanelOpen(true);
   };
 
-  const handlePropertiesUpdate = (blockId: string, properties: Record<string, unknown>): void => {
+  const handlePropertiesUpdate = (blockId: string, properties: any) => {
     setBlockProperties(prev => ({
       ...prev,
       [blockId]: properties
@@ -1156,7 +1302,7 @@ export default function VisualWebEditor() {
   };
 
   const handleClosePropertiesPanel = () => {
-    setSelectedBlock(null);
+    setSelectedBlockId(null);
     setIsPropertiesPanelOpen(false);
   };
 
@@ -1215,29 +1361,6 @@ export default function VisualWebEditor() {
     });
   };
 
-  useEffect(() => {
-    loadPortfolio();
-  }, [loadPortfolio]);
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (isDragging && selectedBlock) {
-        const block = blocks.find(b => b.id === selectedBlock);
-        if (block) {
-          const updatedBlock = {
-            ...block,
-            x: e.clientX - dragOffset.x,
-            y: e.clientY - dragOffset.y
-          };
-          setBlocks(blocks.map(b => b.id === selectedBlock ? updatedBlock : b));
-        }
-      }
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, [isDragging, selectedBlock, blocks, dragOffset]);
-
   if (!isMounted || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
@@ -1289,7 +1412,7 @@ export default function VisualWebEditor() {
                     key={type}
                     type={type}
                     data={data}
-                    onDragStart={(e) => handleDragStart(e, type, 0)}
+                    onDragStart={handleDragStart}
                   />
                 ))}
               </div>
@@ -1501,7 +1624,7 @@ export default function VisualWebEditor() {
                             id={blockId}
                             onDelete={deleteBlock}
                             onSelect={handleBlockSelect}
-                            isSelected={selectedBlock === blockId}
+                            isSelected={selectedBlockId === blockId}
                             properties={blockProperties[blockId]}
                           />
                         </div>
@@ -1529,13 +1652,13 @@ export default function VisualWebEditor() {
                     <X size={16} />
                   </button>
                 </div>
-                {selectedBlock && (
+                {selectedBlockId && (
                   <div className="mt-2 bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
                     <h4 className="font-medium text-gray-800 dark:text-white text-sm">
-                      {COMPONENTS_MAP[selectedBlock.split('-')[0] as ComponentType]?.name}
+                      {COMPONENTS_MAP[selectedBlockId.split('-')[0] as ComponentType]?.name}
                     </h4>
                     <p className="text-xs text-gray-600 dark:text-gray-400">
-                      {COMPONENTS_MAP[selectedBlock.split('-')[0] as ComponentType]?.variants[parseInt(selectedBlock.split('-')[1])]?.name}
+                      {COMPONENTS_MAP[selectedBlockId.split('-')[0] as ComponentType]?.variants[parseInt(selectedBlockId.split('-')[1])]?.name}
                     </p>
                   </div>
                 )}
@@ -1545,9 +1668,10 @@ export default function VisualWebEditor() {
               <div className="flex-1 overflow-y-auto overflow-x-hidden">
                 <div className="p-4">
                   <PropertiesPanel
-                    selectedBlockId={selectedBlock}
+                    selectedBlockId={selectedBlockId}
                     blockProperties={blockProperties}
                     onUpdateProperties={handlePropertiesUpdate}
+                    onClose={handleClosePropertiesPanel}
                   />
                 </div>
               </div>

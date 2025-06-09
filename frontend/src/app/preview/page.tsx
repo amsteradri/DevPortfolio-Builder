@@ -8,30 +8,27 @@ import {
   Monitor, 
   Smartphone, 
   Tablet,
-  Download
+  Eye,
+  ExternalLink,
+  Download,
+  Share2
 } from 'lucide-react';
 import {
   ComponentType,
   COMPONENTS_MAP
 } from '@/components/blocks/components';
 
-interface BlockProperties {
-  [key: string]: string | number | boolean | undefined;
-}
-
 interface ProjectState {
-  blocks: Array<{
-    type: string;
-    variant: number;
-    properties: BlockProperties;
-  }>;
+  projectName: string;
+  blocks: string[];
+  blockProperties: { [key: string]: any };
   lastUpdated: string;
 }
 
 // Componente para renderizar un bloque en la previsualización
 const PreviewBlock: React.FC<{
   id: string;
-  properties?: Record<string, unknown>;
+  properties?: any;
 }> = ({ id, properties = {} }) => {
   const [componentType, variantIndex] = id.split('-') as [ComponentType, string];
   const componentData = COMPONENTS_MAP[componentType];
