@@ -1,4 +1,4 @@
-import { Mail, Phone, MapPin, MessageCircle, Calendar, Globe, Linkedin, Github, Twitter, Instagram, Send, ArrowRight, Star, Clock, Users, Award } from 'lucide-react';
+import { Mail, Phone, MapPin, MessageCircle, Globe, Linkedin, Github, Twitter, Instagram, Send, ArrowRight, Star, Clock, Users, Award } from 'lucide-react';
 
 interface ContactProps {
   preview?: boolean;
@@ -139,7 +139,7 @@ export const ContactCards = ({ preview = false, properties = {} }: ContactProps)
               style={{ 
                 borderColor: `${properties.primaryColor || '#3b82f6'}20`,
                 '--hover-border': properties.primaryColor || '#3b82f6'
-              } as any}
+              } as React.CSSProperties}
               onMouseEnter={(e) => {
                 e.currentTarget.style.borderColor = properties.primaryColor || '#3b82f6';
               }}

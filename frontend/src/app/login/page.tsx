@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { LogIn, User, Mail, ArrowRight } from "lucide-react";
+import { LogIn, Mail, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { useUser } from "@/contexts/UserContext";
 
 // Componente del ícono de Google
@@ -56,8 +57,14 @@ export default function LoginPage() {
           transition={{ duration: 0.8 }}
           className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-2xl max-w-md w-full text-center space-y-6"
         >
-          <div className="w-20 h-20 bg-gradient-to-r from-green-400 to-blue-500 rounded-full mx-auto flex items-center justify-center mb-4">
-            <User className="text-white" size={32} />
+          <div className="relative w-24 h-24 mx-auto mb-6">
+            <Image
+              src="/logo.png"
+              alt="DevPortfolio Builder"
+              width={96}
+              height={96}
+              className="rounded-full"
+            />
           </div>
 
           <h1 className="text-3xl font-bold text-gray-800 dark:text-white">
@@ -65,10 +72,12 @@ export default function LoginPage() {
           </h1>
 
           {user.picture && (
-            <img
+            <Image
               src={user.picture}
               alt="Profile"
-              className="w-16 h-16 rounded-full mx-auto border-4 border-blue-200"
+              width={64}
+              height={64}
+              className="rounded-full mx-auto border-4 border-blue-200"
             />
           )}
 

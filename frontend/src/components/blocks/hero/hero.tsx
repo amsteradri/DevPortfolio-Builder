@@ -1,5 +1,6 @@
 import { ReactNode, useEffect } from 'react';
-import { Github, Linkedin, Twitter, ArrowRight, ChevronRight, Mail, Phone } from 'lucide-react';
+import { Github, Linkedin, Twitter, ArrowRight, ChevronRight, Mail } from 'lucide-react';
+import Image from 'next/image';
 
 interface HeroProps {
   preview?: boolean;
@@ -247,24 +248,27 @@ export const HeroWithBackground = ({ preview = false, properties = {} }: HeroPro
     title = "Transformando ideas en experiencias digitales",
     subtitle = "Full Stack Developer",
     description = "Desarrollador web especializado en crear soluciones modernas y escalables",
+    backgroundColor = "#111827",
     textColor = "#ffffff",
     primaryColor = "#6366f1",
-    fontSize = "text-5xl md:text-7xl",
-    padding = "p-8",
-    backgroundImage = "https://images.unsplash.com/photo-1504639725590-34d0984388bd?ixlib=rb-4.0.3",
-    buttonText = "Ver Portfolio",
-    showButton = true
+    fontSize = "text-4xl md:text-7xl",
+    textAlign = "text-center",
+    buttonText = "Ver Proyectos",
+    showButton = true,
+    showSocial = true,
+    githubLink = "https://github.com",
+    linkedinLink = "https://linkedin.com",
+    twitterLink = "https://twitter.com",
+    backgroundImage
   } = properties;
-
-  const imageToUse = properties.backgroundImage || backgroundImage;
 
   return (
     <div 
       className={`${preview ? 'scale-75 pointer-events-none' : ''} min-h-[85vh] relative bg-cover bg-center flex items-center`}
-      style={{ backgroundImage: `url("${imageToUse}")` }}
+      style={{ backgroundImage: `url("${backgroundImage}")` }}
     >
       <div className="absolute inset-0 bg-black/70" />
-      <div className={`relative z-10 container mx-auto ${properties.padding || padding}`}>
+      <div className="relative z-10 container mx-auto p-8">
         <div className="max-w-3xl">
           <h2 className="text-xl font-medium mb-4" style={{ color: properties.primaryColor || primaryColor }}>
             {properties.subtitle || subtitle}
@@ -355,31 +359,31 @@ export const HeroAsymmetric = ({ preview = false, properties = {} }: HeroProps) 
   );
 };
 
-// Hero con imagen de perfil - MEJORADO
+// Hero con perfil - SIMPLIFICADO
 export const HeroWithProfile = ({ preview = false, properties = {} }: HeroProps) => {
   const {
-    title = "Juan Pérez",
-    subtitle = "Desarrollador Full Stack",
-    description = "Creando experiencias digitales excepcionales con tecnologías modernas",
-    backgroundColor = "#ffffff",
-    textColor = "#1f2937",
-    primaryColor = "#3b82f6",
-    fontSize = "text-4xl md:text-6xl",
+    title = "Desarrollador Full Stack",
+    subtitle = "👋 Bienvenido a mi portfolio",
+    description = "Especializado en crear aplicaciones web modernas y experiencias digitales únicas",
+    backgroundColor = "#111827",
+    textColor = "#ffffff",
+    primaryColor = "#6366f1",
+    fontSize = "text-4xl md:text-7xl",
     textAlign = "text-center",
-    padding = "p-12",
-    profileImage = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop&crop=face",
-    buttonText = "Contáctame",
+    buttonText = "Ver Proyectos",
     showButton = true,
     showSocial = true,
+    githubLink = "https://github.com",
+    linkedinLink = "https://linkedin.com",
+    twitterLink = "https://twitter.com",
     backgroundImage
   } = properties;
 
-  const imageToUse = properties.profileImage || profileImage;
   const hasBackgroundImage = properties.backgroundImage || backgroundImage;
 
   return (
     <div 
-      className={`${preview ? 'scale-75 pointer-events-none' : ''} min-h-[80vh] flex items-center justify-center ${properties.padding || padding} relative`}
+      className={`${preview ? 'scale-75 pointer-events-none' : ''} min-h-[80vh] flex items-center justify-center relative`}
       style={{ 
         background: hasBackgroundImage 
           ? `url("${hasBackgroundImage}") center/cover` 
@@ -388,12 +392,14 @@ export const HeroWithProfile = ({ preview = false, properties = {} }: HeroProps)
     >
       {hasBackgroundImage && <div className="absolute inset-0 bg-black/50"></div>}
       <div className={`${properties.textAlign || textAlign} max-w-4xl mx-auto relative z-10`}>
-        <div className="mb-8">
-          <img 
-            src={imageToUse} 
-            alt="Perfil"
-            className="w-32 h-32 md:w-40 md:h-40 rounded-full object-cover mx-auto mb-8 border-4 shadow-lg"
-            style={{ borderColor: properties.primaryColor || primaryColor }}
+        <div className="relative flex-shrink-0">
+          <Image 
+            src={properties.profileImage || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop&crop=face"} 
+            alt="Profile"
+            width={160}
+            height={160}
+            className="rounded-full object-cover border-4 shadow-lg"
+            style={{ borderColor: properties.primaryColor || '#6366f1' }}
           />
         </div>
         
@@ -448,23 +454,27 @@ export const HeroWithProfile = ({ preview = false, properties = {} }: HeroProps)
   );
 };
 
-// Hero Split Screen - MEJORADO
+// Hero Split Screen - SIMPLIFICADO
 export const HeroSplitScreen = ({ preview = false, properties = {} }: HeroProps) => {
   const {
     title = "Desarrollador Full Stack",
-    subtitle = "Especialista en React & Node.js",
-    description = "Transformo ideas complejas en aplicaciones web elegantes y funcionales",
-    backgroundColor = "#0f172a",
+    subtitle = "👋 Bienvenido a mi portfolio",
+    description = "Especializado en crear aplicaciones web modernas y experiencias digitales únicas",
+    backgroundColor = "#111827",
     textColor = "#ffffff",
-    primaryColor = "#f59e0b",
-    fontSize = "text-4xl md:text-5xl",
-    padding = "p-0",
-    profileImage = "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=600&h=800&fit=crop&crop=face",
+    primaryColor = "#6366f1",
+    fontSize = "text-4xl md:text-7xl",
+    textAlign = "text-center",
+    buttonText = "Ver Proyectos",
     showButton = true,
-    buttonText = "Ver Proyectos"
+    showSocial = true,
+    githubLink = "https://github.com",
+    linkedinLink = "https://linkedin.com",
+    twitterLink = "https://twitter.com",
+    backgroundImage
   } = properties;
 
-  const imageToUse = properties.profileImage || profileImage;
+  const imageToUse = properties.profileImage || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=600&h=800&fit=crop&crop=face";
 
   return (
     <div 
@@ -503,7 +513,7 @@ export const HeroSplitScreen = ({ preview = false, properties = {} }: HeroProps)
       
       {/* Lado derecho - Imagen */}
       <div className="relative">
-        <img 
+        <Image 
           src={imageToUse} 
           alt="Perfil"
           className="w-full h-full object-cover"

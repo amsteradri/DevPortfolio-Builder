@@ -5,13 +5,21 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { CheckCircle, ArrowRight, User, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useUser } from '@/contexts/UserContext';
+
+interface UserInfo {
+  id: number;
+  name: string;
+  email: string;
+  picture: string | null;
+}
 
 export default function AuthSuccessPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { setUser } = useUser();
-  const [userInfo, setUserInfo] = useState<any>(null);
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [countdown, setCountdown] = useState(3);
   const [hasProcessed, setHasProcessed] = useState(false); // Flag para evitar procesamiento múltiple
@@ -141,11 +149,15 @@ export default function AuthSuccessPage() {
           </h1>
           <div className="flex items-center justify-center gap-3 my-4">
             {userInfo.picture && (
-              <img 
-                src={userInfo.picture} 
-                alt="Profile" 
-                className="w-12 h-12 rounded-full border-2 border-blue-200"
-              />
+              <div className="relative w-24 h-24 mx-auto mb-6">
+                <Image
+                  src={userInfo.picture}
+                  alt={userInfo.name}
+                  width={96}
+                  height={96}
+                  className="rounded-full"
+                />
+              </div>
             )}
             <div>
               <p className="text-xl text-gray-600 dark:text-gray-400 font-medium">

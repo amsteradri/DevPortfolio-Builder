@@ -1,4 +1,4 @@
-import { User, Briefcase, Mail, Code, Zap } from 'lucide-react';
+import { User, Briefcase, Mail, Zap } from 'lucide-react';
 import { LucideIcon } from 'lucide-react';
 import React from 'react';
 
@@ -26,16 +26,14 @@ import {
   ProjectsMasonry, 
   ProjectsTimeline, 
   ProjectsHorizontal, 
-  ProjectsMinimal,
-  ProjectsBlock 
+  ProjectsMinimal
 } from './projects/projects';
 import { 
   ContactSimple,
   ContactCards,
   ContactMinimal,
   ContactAvailability,
-  ContactGradient,
-  ContactBlock 
+  ContactGradient
 } from './contact/contact';
 
 // Interfaces y tipos
@@ -196,11 +194,6 @@ export const COMPONENTS_MAP: Record<ComponentType, ComponentData> = {
         name: 'Gradiente',
         component: ContactGradient,
         description: 'Diseño visual con gradientes'
-      },
-      {
-        name: 'Clásico',
-        component: ContactBlock,
-        description: 'Contacto tradicional en lista'
       }
     ]
   }

@@ -1,4 +1,5 @@
-import { User, Code, Coffee, Heart, MapPin, Calendar, Award, Star, Download, Mail, Phone, Linkedin, Github, Upload, Link } from 'lucide-react';
+import { Github, Linkedin, User, Star, MapPin, Download, Mail } from 'lucide-react';
+import Image from 'next/image';
 
 interface AboutProps {
   preview?: boolean;
@@ -120,10 +121,12 @@ export const AboutWithPhoto = ({ preview = false, properties = {} }: AboutProps)
     >
       <div className="flex flex-col lg:flex-row items-center gap-8 w-full">
         <div className="relative flex-shrink-0">
-          <img 
+          <Image 
             src={properties.profileImage || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face"} 
             alt="Perfil"
-            className="w-40 h-40 rounded-full object-cover border-4 shadow-lg"
+            width={160}
+            height={160}
+            className="rounded-full object-cover border-4 shadow-lg"
             style={{ borderColor: properties.primaryColor || '#6366f1' }}
           />
           <div 
@@ -291,10 +294,12 @@ export const AboutProfileCard = ({ preview = false, properties = {} }: AboutProp
         }}
       >
         <div className="absolute -bottom-20 left-1/2 transform -translate-x-1/2">
-          <img 
+          <Image 
             src={properties.profileImage || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=face"} 
             alt="Perfil"
-            className="w-40 h-40 rounded-full object-cover border-4 border-white shadow-lg"
+            width={160}
+            height={160}
+            className="rounded-full object-cover border-4 border-white shadow-lg"
           />
         </div>
       </div>
@@ -399,10 +404,12 @@ export const AboutWithSkills = ({ preview = false, properties = {} }: AboutProps
         {/* Info personal */}
         <div>
           <div className="flex items-center gap-6 mb-6">
-            <img 
+            <Image 
               src={properties.profileImage || "https://images.unsplash.com/photo-1494790108755-2616b612b372?w=200&h=200&fit=crop&crop=face"} 
               alt="Perfil"
-              className="w-20 h-20 rounded-full object-cover border-3"
+              width={80}
+              height={80}
+              className="rounded-full object-cover border-3"
               style={{ borderColor: properties.primaryColor || '#3b82f6' }}
             />
             <div>
