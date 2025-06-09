@@ -9,7 +9,8 @@ import {
   ArrowLeft, ArrowRight, Minus, Maximize2, X, Upload,
   Share2, Copy, Check, ExternalLink, ArrowUp, ArrowDown,
   Github, Linkedin, Twitter, ChevronRight, Mail, Phone,
-  RefreshCw, Monitor, Smartphone, Tablet, Download
+  RefreshCw, Monitor, Smartphone, Tablet, Download,
+  Plus, Settings, ZoomIn, ZoomOut, Save, Loader2
 } from 'lucide-react';
 import {
   ComponentType,
@@ -965,18 +966,18 @@ export default function VisualWebEditor() {
   const [user, setUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [lastSaved, setLastSaved] = useState<string>(''); // Para comparar cambios
+  const [lastSaved, setLastSaved] = useState<Date>(new Date());
   const searchParams = useSearchParams();
   const router = useRouter();
   
-  const [projectName, setProjectName] = useState('');
+  const [projectName, setProjectName] = useState<string>('Mi Portfolio');
   const [blocks, setBlocks] = useState<Block[]>([]);
   const [selectedBlock, setSelectedBlock] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [lastSavedHash, setLastSavedHash] = useState<string>('');
-  const [portfolioId, setPortfolioId] = useState<number | null>(null);
+  const [portfolioId, setPortfolioId] = useState<string>('');
   const [isPropertiesPanelOpen, setIsPropertiesPanelOpen] = useState(false);
   const [blockProperties, setBlockProperties] = useState<Record<string, Record<string, unknown>>>({});
 
@@ -1161,25 +1162,31 @@ export default function VisualWebEditor() {
     document.body.style.userSelect = 'auto';
   };
 
-  const handleMouseMove = (e: MouseEvent) => {
-    if (isDragging) {
-      const newWidth = e.clientX;
-      if (newWidth >= 300 && newWidth <= 800) { // límites mín y máx
-        setZoom(newWidth / 100);
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (isDragging && selectedBlock) {
+      const block = blocks.find(b => b.id === selectedBlock);
+      if (block) {
+        const newBlocks = blocks.map(b => {
+          if (b.id === selectedBlock) {
+            return {
+              ...b,
+              x: e.clientX - dragOffset.x,
+              y: e.clientY - dragOffset.y
+            };
+          }
+          return b;
+        });
+        setBlocks(newBlocks);
       }
     }
-  };
+  }, [isDragging, selectedBlock, blocks, dragOffset]);
 
-  // Añadir los event listeners
   useEffect(() => {
     document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isDragging]);
+  }, [handleMouseMove]);
 
   const handleZoomChange = (newZoom: number) => {
     if (newZoom >= 25 && newZoom <= 200) { // limitamos el zoom entre 25% y 200%

@@ -262,7 +262,7 @@ export const HeroWithBackground = ({ preview = false, properties = {} }: HeroPro
       style={{ backgroundImage: `url("${backgroundImage}")` }}
     >
       <div className="absolute inset-0 bg-black/70" />
-      <div className={`relative z-10 container mx-auto ${properties.padding || padding}`}>
+      <div className="relative z-10 container mx-auto p-8">
         <div className="max-w-3xl">
           <h2 className="text-xl font-medium mb-4" style={{ color: properties.primaryColor || primaryColor }}>
             {properties.subtitle || subtitle}
@@ -364,7 +364,6 @@ export const HeroWithProfile = ({ preview = false, properties = {} }: HeroProps)
     primaryColor = "#3b82f6",
     fontSize = "text-4xl md:text-6xl",
     textAlign = "text-center",
-    padding = "p-12",
     profileImage = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop&crop=face",
     buttonText = "Contáctame",
     showButton = true,
@@ -372,12 +371,11 @@ export const HeroWithProfile = ({ preview = false, properties = {} }: HeroProps)
     backgroundImage
   } = properties;
 
-  const imageToUse = properties.profileImage || profileImage;
   const hasBackgroundImage = properties.backgroundImage || backgroundImage;
 
   return (
     <div 
-      className={`${preview ? 'scale-75 pointer-events-none' : ''} min-h-[80vh] flex items-center justify-center ${properties.padding || padding} relative`}
+      className={`${preview ? 'scale-75 pointer-events-none' : ''} min-h-[80vh] flex items-center justify-center relative`}
       style={{ 
         background: hasBackgroundImage 
           ? `url("${hasBackgroundImage}") center/cover` 
