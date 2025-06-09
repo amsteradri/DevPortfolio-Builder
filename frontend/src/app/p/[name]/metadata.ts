@@ -12,13 +12,16 @@ export async function generateMetadata({ params }: { params: { name: string } })
     }
 
     const response = await fetch(`http://localhost:8000/portfolio/${encodeURIComponent(portfolioName)}`);
+    
     if (!response.ok) {
       return {
         title: 'Portfolio no encontrado',
         description: 'El portfolio solicitado no existe'
       };
     }
+
     const portfolio = await response.json();
+    
     return {
       title: `${portfolio.name} - Portfolio`,
       description: `Portfolio de ${portfolio.name}`,
