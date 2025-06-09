@@ -109,9 +109,9 @@ const SortableBlock: React.FC<{
   onDelete: (id: string) => void;
   onSelect: (id: string) => void;
   isSelected: boolean;
-  properties?: any;
+  properties?: Record<string, unknown>;
 }> = ({ id, onDelete, onSelect, isSelected, properties = {} }) => {
-  const [isDragging, setIsDragging] = useState(false);
+  const [isDragging] = useState(false);
   
   const [componentType, variantIndex] = id.split('-') as [ComponentType, string];
   const componentData = COMPONENTS_MAP[componentType];
@@ -123,9 +123,6 @@ const SortableBlock: React.FC<{
     e.stopPropagation();
     onSelect(id);
   };
-
-  // Usar el ID como base para evitar IDs dinámicos
-  const blockId = `block-${id}`;
 
   return (
     <div 
@@ -162,8 +159,8 @@ const SortableBlock: React.FC<{
 // Nuevo componente para el panel de propiedades
 const PropertiesPanel: React.FC<{
   selectedBlockId: string | null;
-  blockProperties: {[key: string]: any};
-  onUpdateProperties: (blockId: string, properties: any) => void;
+  blockProperties: Record<string, Record<string, unknown>>;
+  onUpdateProperties: (blockId: string, properties: Record<string, unknown>) => void;
   onClose: () => void;
 }> = ({ selectedBlockId, blockProperties, onUpdateProperties, onClose }) => {
   if (!selectedBlockId) return null;
@@ -172,7 +169,7 @@ const PropertiesPanel: React.FC<{
   const componentData = COMPONENTS_MAP[componentType];
   const currentProperties = blockProperties[selectedBlockId] || {};
 
-  const updateProperty = (key: string, value: any) => {
+  const updateProperty = (key: string, value: unknown) => {
     onUpdateProperties(selectedBlockId, {
       ...currentProperties,
       [key]: value
@@ -1294,7 +1291,7 @@ export default function VisualWebEditor() {
     setIsPropertiesPanelOpen(true);
   };
 
-  const handlePropertiesUpdate = (blockId: string, properties: any) => {
+  const handlePropertiesUpdate = (blockId: string, properties: Record<string, unknown>) => {
     setBlockProperties(prev => ({
       ...prev,
       [blockId]: properties
@@ -1360,6 +1357,33 @@ export default function VisualWebEditor() {
       return updated;
     });
   };
+
+  useEffect(() => {
+    if (portfolioId) {
+      loadPortfolio(portfolioId);
+    }
+  }, [portfolioId, loadPortfolio]);
+
+  useEffect(() => {
+    const saveInterval = setInterval(() => {
+      if (hasUnsavedChanges()) {
+        saveProjectState();
+      }
+    }, 30000);
+
+    return () => clearInterval(saveInterval);
+  }, [createDataHash, saveProjectState]);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isDragging) {
+        // ... existing code ...
+      }
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, [isDragging, handleMouseMove]);
 
   if (!isMounted || isLoading) {
     return (

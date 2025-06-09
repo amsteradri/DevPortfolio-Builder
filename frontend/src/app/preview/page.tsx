@@ -7,11 +7,7 @@ import {
   RefreshCw, 
   Monitor, 
   Smartphone, 
-  Tablet,
-  Eye,
-  ExternalLink,
-  Download,
-  Share2
+  Tablet
 } from 'lucide-react';
 import {
   ComponentType,
@@ -21,14 +17,14 @@ import {
 interface ProjectState {
   projectName: string;
   blocks: string[];
-  blockProperties: { [key: string]: any };
+  blockProperties: Record<string, Record<string, unknown>>;
   lastUpdated: string;
 }
 
 // Componente para renderizar un bloque en la previsualización
 const PreviewBlock: React.FC<{
   id: string;
-  properties?: any;
+  properties?: Record<string, unknown>;
 }> = ({ id, properties = {} }) => {
   const [componentType, variantIndex] = id.split('-') as [ComponentType, string];
   const componentData = COMPONENTS_MAP[componentType];

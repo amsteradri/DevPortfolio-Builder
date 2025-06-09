@@ -1,5 +1,6 @@
 import { ReactNode, useEffect } from 'react';
 import { Github, Linkedin, Twitter, ArrowRight, ChevronRight, Mail, Phone } from 'lucide-react';
+import Image from 'next/image';
 
 interface HeroProps {
   preview?: boolean;
@@ -388,12 +389,14 @@ export const HeroWithProfile = ({ preview = false, properties = {} }: HeroProps)
     >
       {hasBackgroundImage && <div className="absolute inset-0 bg-black/50"></div>}
       <div className={`${properties.textAlign || textAlign} max-w-4xl mx-auto relative z-10`}>
-        <div className="mb-8">
-          <img 
-            src={imageToUse} 
-            alt="Perfil"
-            className="w-32 h-32 md:w-40 md:h-40 rounded-full object-cover mx-auto mb-8 border-4 shadow-lg"
-            style={{ borderColor: properties.primaryColor || primaryColor }}
+        <div className="relative flex-shrink-0">
+          <Image 
+            src={properties.profileImage || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face"} 
+            alt="Profile"
+            width={160}
+            height={160}
+            className="rounded-full object-cover border-4 shadow-lg"
+            style={{ borderColor: properties.primaryColor || '#6366f1' }}
           />
         </div>
         

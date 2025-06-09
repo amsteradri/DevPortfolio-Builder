@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { Menu, X, User, LogOut, Code } from 'lucide-react';
@@ -58,10 +59,12 @@ export default function Navbar() {
               <div className="flex items-center space-x-2 ml-4 pl-4 border-l border-gray-200 dark:border-gray-700">
                 <div className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-800/50">
                   {user.picture ? (
-                    <img 
+                    <Image 
                       src={user.picture} 
                       alt="Profile" 
-                      className="w-6 h-6 rounded-full ring-2 ring-blue-500/20"
+                      width={24}
+                      height={24}
+                      className="rounded-full ring-2 ring-blue-500/20"
                     />
                   ) : (
                     <User size={16} className="text-gray-600 dark:text-gray-400" />
@@ -124,10 +127,12 @@ export default function Navbar() {
               <div className="pt-4 pb-3 border-t border-gray-200 dark:border-gray-800">
                 <div className="flex items-center px-3 py-2">
                   {user.picture ? (
-                    <img 
+                    <Image 
                       src={user.picture} 
                       alt="Profile" 
-                      className="w-8 h-8 rounded-full ring-2 ring-blue-500/20"
+                      width={32}
+                      height={32}
+                      className="rounded-full ring-2 ring-blue-500/20"
                     />
                   ) : (
                     <User size={20} className="text-gray-600 dark:text-gray-400" />

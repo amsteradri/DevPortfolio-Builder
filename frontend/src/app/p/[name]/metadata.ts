@@ -28,7 +28,7 @@ export async function generateMetadata({ params }: { params: { name: string } })
         type: 'website',
       },
     };
-  } catch (error) {
+  } catch {
     return {
       title: 'Error',
       description: 'Error al cargar el portfolio'

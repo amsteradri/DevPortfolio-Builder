@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { LogIn, User, Mail, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { useUser } from "@/contexts/UserContext";
 
 // Componente del ícono de Google
@@ -65,10 +66,12 @@ export default function LoginPage() {
           </h1>
 
           {user.picture && (
-            <img
+            <Image
               src={user.picture}
               alt="Profile"
-              className="w-16 h-16 rounded-full mx-auto border-4 border-blue-200"
+              width={64}
+              height={64}
+              className="rounded-full mx-auto border-4 border-blue-200"
             />
           )}
 

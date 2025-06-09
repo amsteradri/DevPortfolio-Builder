@@ -17,13 +17,14 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/contexts/UserContext';
 import { useAlert } from '@/contexts/AlertContext';
+import Image from 'next/image';
 
 interface Portfolio {
   id: number;
   name: string;
   content: {
     blocks: string[];
-    blockProperties: { [key: string]: any };
+    blockProperties: Record<string, Record<string, unknown>>;
     lastUpdated: string;
   };
   user_id: number;
@@ -339,16 +340,23 @@ export default function PortfoliosPage() {
 
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-3">
-                {user.picture && (
-                  <img 
-                    src={user.picture} 
-                    alt="Profile" 
-                    className="w-8 h-8 rounded-full"
+                {user?.picture && (
+                  <Image
+                    src={user.picture}
+                    alt="Profile"
+                    width={32}
+                    height={32}
+                    className="rounded-full border-2 border-blue-200"
                   />
                 )}
-                <span className="text-sm text-gray-600 dark:text-gray-400">
-                  {user.name}
-                </span>
+                <div>
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {user?.name}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    {user?.email}
+                  </p>
+                </div>
               </div>
 
               <button
