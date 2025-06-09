@@ -184,8 +184,7 @@ const PropertiesPanel: React.FC<{
 }> = ({ selectedBlockId, blockProperties, onUpdateProperties }) => {
   if (!selectedBlockId) return null;
 
-  const [componentType, variantIndex] = selectedBlockId.split('-') as [ComponentType, string];
-  const componentData = COMPONENTS_MAP[componentType];
+  const [componentType] = selectedBlockId.split('-') as [ComponentType, string];
   const currentProperties = blockProperties[selectedBlockId] || {};
 
   const updateProperty = (key: string, value: unknown) => {
@@ -597,8 +596,8 @@ const PropertiesPanel: React.FC<{
       {(componentType === 'projects') && renderPropertySection("🚀 Gestión de Proyectos", (
         <div className="space-y-4">
           {/* Lista de proyectos */}
-          {currentProperties.projects && currentProperties.projects.length > 0 ? (
-            currentProperties.projects.map((project: any, index: number) => (
+          {currentProperties.projects && Array.isArray(currentProperties.projects) && currentProperties.projects.length > 0 ? (
+            currentProperties.projects.map((project: Project, index: number) => (
               <div key={index} className="border rounded-lg p-4 space-y-3 bg-gray-50 dark:bg-gray-800">
                 <div className="flex items-center justify-between">
                   <h4 className="font-medium text-gray-900 dark:text-white">Proyecto {index + 1}</h4>
@@ -692,11 +691,7 @@ const PropertiesPanel: React.FC<{
                 </div>
               </div>
             ))
-          ) : (
-            <div className="text-center py-4 text-gray-500 dark:text-gray-400 text-sm">
-              No hay proyectos agregados aún
-            </div>
-          )}
+          ) : null}
           
           {/* Botón para añadir proyecto */}
           <button
@@ -809,8 +804,8 @@ const PropertiesPanel: React.FC<{
       {(componentType === 'about') && renderPropertySection("📅 Timeline", (
         <div className="space-y-4">
           {/* Lista de elementos del timeline */}
-          {currentProperties.timeline && currentProperties.timeline.length > 0 ? (
-            currentProperties.timeline.map((item: any, index: number) => (
+          {currentProperties.timeline && Array.isArray(currentProperties.timeline) && currentProperties.timeline.length > 0 ? (
+            currentProperties.timeline.map((item: TimelineItem, index: number) => (
               <div key={index} className="border rounded-lg p-4 space-y-3 bg-gray-50 dark:bg-gray-800">
                 <div className="flex items-center justify-between">
                   <h4 className="font-medium text-gray-900 dark:text-white">Evento {index + 1}</h4>
@@ -879,11 +874,7 @@ const PropertiesPanel: React.FC<{
                 </div>
               </div>
             ))
-          ) : (
-            <div className="text-center py-4 text-gray-500 dark:text-gray-400 text-sm">
-              No hay eventos en el timeline aún
-            </div>
-          )}
+          ) : null}
           
           {/* Botón para añadir evento al timeline */}
           <button
@@ -968,9 +959,7 @@ export default function VisualWebEditor() {
   const [blocks, setBlocks] = useState<Block[]>([]);
   const [selectedBlock, setSelectedBlock] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [dragOffset, setDragOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
-  const [portfolioId, setPortfolioId] = useState<string>('');
   const [isPropertiesPanelOpen, setIsPropertiesPanelOpen] = useState(false);
   const [blockProperties, setBlockProperties] = useState<Record<string, Record<string, unknown>>>({});
 
@@ -1035,27 +1024,22 @@ export default function VisualWebEditor() {
 
   // Auto-guardado SOLO cuando hay cambios reales
   useEffect(() => {
-    if (!currentPortfolio || !user || isLoading || !lastSaved) return;
+    if (!user || !lastSaved) return;
 
     const currentDataHash = createDataHash();
     
-    // Solo guardar si hay cambios reales
-    if (currentDataHash !== lastSaved) {
-      console.log('🔄 Cambios detectados, programando guardado...');
-      
-      const timeoutId = setTimeout(() => {
+    if (currentDataHash !== lastSavedHash) {
+      const saveTimeout = setTimeout(() => {
         saveProjectState();
-      }, 1500); // Reducido a 1.5 segundos
+      }, 2000);
 
-      return () => {
-        clearTimeout(timeoutId);
-      };
+      return () => clearTimeout(saveTimeout);
     }
-  }, [blocks, blockProperties, projectName, currentPortfolio, user, isLoading, lastSaved, createDataHash, saveProjectState]);
+  }, [blocks, blockProperties, lastSaved, createDataHash, saveProjectState, user, lastSavedHash]);
 
   // Función para forzar guardado (para preview)
   const forceSave = async () => {
-    if (!currentPortfolio || !user) return;
+    if (!user) return;
     
     setIsSaving(true);
     await saveProjectState();
@@ -1063,7 +1047,7 @@ export default function VisualWebEditor() {
 
   // Función para abrir preview
   const openPreview = async () => {
-    if (!currentPortfolio) return;
+    if (!user) return;
     
     // Guardar antes de abrir preview solo si hay cambios
     const currentDataHash = createDataHash();

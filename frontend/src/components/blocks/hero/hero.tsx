@@ -248,12 +248,18 @@ export const HeroWithBackground = ({ preview = false, properties = {} }: HeroPro
     title = "Transformando ideas en experiencias digitales",
     subtitle = "Full Stack Developer",
     description = "Desarrollador web especializado en crear soluciones modernas y escalables",
+    backgroundColor = "#111827",
     textColor = "#ffffff",
     primaryColor = "#6366f1",
-    fontSize = "text-5xl md:text-7xl",
-    backgroundImage = "https://images.unsplash.com/photo-1504639725590-34d0984388bd?ixlib=rb-4.0.3",
-    buttonText = "Ver Portfolio",
-    showButton = true
+    fontSize = "text-4xl md:text-7xl",
+    textAlign = "text-center",
+    buttonText = "Ver Proyectos",
+    showButton = true,
+    showSocial = true,
+    githubLink = "https://github.com",
+    linkedinLink = "https://linkedin.com",
+    twitterLink = "https://twitter.com",
+    backgroundImage
   } = properties;
 
   return (
@@ -353,21 +359,23 @@ export const HeroAsymmetric = ({ preview = false, properties = {} }: HeroProps) 
   );
 };
 
-// Hero con imagen de perfil - MEJORADO
+// Hero con perfil - SIMPLIFICADO
 export const HeroWithProfile = ({ preview = false, properties = {} }: HeroProps) => {
   const {
-    title = "Juan Pérez",
-    subtitle = "Desarrollador Full Stack",
-    description = "Creando experiencias digitales excepcionales con tecnologías modernas",
-    backgroundColor = "#ffffff",
-    textColor = "#1f2937",
-    primaryColor = "#3b82f6",
-    fontSize = "text-4xl md:text-6xl",
+    title = "Desarrollador Full Stack",
+    subtitle = "👋 Bienvenido a mi portfolio",
+    description = "Especializado en crear aplicaciones web modernas y experiencias digitales únicas",
+    backgroundColor = "#111827",
+    textColor = "#ffffff",
+    primaryColor = "#6366f1",
+    fontSize = "text-4xl md:text-7xl",
     textAlign = "text-center",
-    profileImage = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop&crop=face",
-    buttonText = "Contáctame",
+    buttonText = "Ver Proyectos",
     showButton = true,
     showSocial = true,
+    githubLink = "https://github.com",
+    linkedinLink = "https://linkedin.com",
+    twitterLink = "https://twitter.com",
     backgroundImage
   } = properties;
 
@@ -386,7 +394,7 @@ export const HeroWithProfile = ({ preview = false, properties = {} }: HeroProps)
       <div className={`${properties.textAlign || textAlign} max-w-4xl mx-auto relative z-10`}>
         <div className="relative flex-shrink-0">
           <Image 
-            src={properties.profileImage || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face"} 
+            src={properties.profileImage || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop&crop=face"} 
             alt="Profile"
             width={160}
             height={160}
@@ -446,23 +454,27 @@ export const HeroWithProfile = ({ preview = false, properties = {} }: HeroProps)
   );
 };
 
-// Hero Split Screen - MEJORADO
+// Hero Split Screen - SIMPLIFICADO
 export const HeroSplitScreen = ({ preview = false, properties = {} }: HeroProps) => {
   const {
     title = "Desarrollador Full Stack",
-    subtitle = "Especialista en React & Node.js",
-    description = "Transformo ideas complejas en aplicaciones web elegantes y funcionales",
-    backgroundColor = "#0f172a",
+    subtitle = "👋 Bienvenido a mi portfolio",
+    description = "Especializado en crear aplicaciones web modernas y experiencias digitales únicas",
+    backgroundColor = "#111827",
     textColor = "#ffffff",
-    primaryColor = "#f59e0b",
-    fontSize = "text-4xl md:text-5xl",
-    padding = "p-0",
-    profileImage = "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=600&h=800&fit=crop&crop=face",
+    primaryColor = "#6366f1",
+    fontSize = "text-4xl md:text-7xl",
+    textAlign = "text-center",
+    buttonText = "Ver Proyectos",
     showButton = true,
-    buttonText = "Ver Proyectos"
+    showSocial = true,
+    githubLink = "https://github.com",
+    linkedinLink = "https://linkedin.com",
+    twitterLink = "https://twitter.com",
+    backgroundImage
   } = properties;
 
-  const imageToUse = properties.profileImage || profileImage;
+  const imageToUse = properties.profileImage || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=600&h=800&fit=crop&crop=face";
 
   return (
     <div 
