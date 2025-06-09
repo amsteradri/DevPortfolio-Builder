@@ -257,12 +257,10 @@ export const HeroWithBackground = ({ preview = false, properties = {} }: HeroPro
     showButton = true
   } = properties;
 
-  const imageToUse = properties.backgroundImage || backgroundImage;
-
   return (
     <div 
       className={`${preview ? 'scale-75 pointer-events-none' : ''} min-h-[85vh] relative bg-cover bg-center flex items-center`}
-      style={{ backgroundImage: `url("${imageToUse}")` }}
+      style={{ backgroundImage: `url("${backgroundImage}")` }}
     >
       <div className="absolute inset-0 bg-black/70" />
       <div className={`relative z-10 container mx-auto ${properties.padding || padding}`}>

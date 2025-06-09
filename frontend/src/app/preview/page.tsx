@@ -8,13 +8,6 @@ import {
   Monitor, 
   Smartphone, 
   Tablet,
-  Github,
-  Linkedin,
-  Twitter,
-  ArrowRight,
-  ChevronRight,
-  Mail,
-  Phone,
   Download
 } from 'lucide-react';
 import {
@@ -141,21 +134,6 @@ export default function PreviewPage() {
     link.click();
     
     URL.revokeObjectURL(url);
-  };
-
-  const handlePropertyChange = (property: string, value: string | number | boolean) => {
-    if (selectedBlock) {
-      const block = blocks.find(b => b.id === selectedBlock);
-      if (block) {
-        updateBlock(selectedBlock, {
-          ...block,
-          properties: {
-            ...block.properties,
-            [property]: value
-          }
-        });
-      }
-    }
   };
 
   if (isLoading) {

@@ -8,7 +8,8 @@ import {
   GripHorizontal, Code, Trash2, Eye, ChevronDown,
   ArrowLeft, ArrowRight, Minus, Maximize2, X, Upload,
   Share2, Copy, Check, ExternalLink, ArrowUp, ArrowDown,
-  Github, Linkedin, Twitter, ChevronRight, Mail, Phone
+  Github, Linkedin, Twitter, ChevronRight, Mail, Phone,
+  RefreshCw, Monitor, Smartphone, Tablet, Download
 } from 'lucide-react';
 import {
   ComponentType,
@@ -969,12 +970,13 @@ export default function VisualWebEditor() {
   const router = useRouter();
   
   const [projectName, setProjectName] = useState('');
-  const [blocks, setBlocks] = useState<string[]>([]);
-  const [draggedItem, setDraggedItem] = useState<ComponentType | null>(null);
-  const [sidebarWidth, setSidebarWidth] = useState(600);
-  const [isResizing, setIsResizing] = useState(false);
-  const [zoom, setZoom] = useState(100);
-  const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
+  const [blocks, setBlocks] = useState<Block[]>([]);
+  const [selectedBlock, setSelectedBlock] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [lastSavedHash, setLastSavedHash] = useState<string>('');
+  const [portfolioId, setPortfolioId] = useState<number | null>(null);
   const [isPropertiesPanelOpen, setIsPropertiesPanelOpen] = useState(false);
   const [blockProperties, setBlockProperties] = useState<{[key: string]: any}>({});
 
@@ -1186,14 +1188,14 @@ export default function VisualWebEditor() {
   const clearProjectState = () => {
     setBlocks([]);
     setBlockProperties({});
-    setSelectedBlockId(null);
+    setSelectedBlock(null);
     setIsPropertiesPanelOpen(false);
   };
 
   // Función para deseleccionar al hacer click en el canvas
   const handleCanvasClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
-      setSelectedBlockId(null);
+      setSelectedBlock(null);
       setIsPropertiesPanelOpen(false);
     }
   };
@@ -1238,22 +1240,22 @@ export default function VisualWebEditor() {
   };
 
   const handleMouseDown = () => {
-    setIsResizing(true);
+    setIsDragging(true);
     document.body.style.cursor = 'col-resize';
     document.body.style.userSelect = 'none';
   };
 
   const handleMouseUp = () => {
-    setIsResizing(false);
+    setIsDragging(false);
     document.body.style.cursor = 'default';
     document.body.style.userSelect = 'auto';
   };
 
   const handleMouseMove = (e: MouseEvent) => {
-    if (isResizing) {
+    if (isDragging) {
       const newWidth = e.clientX;
       if (newWidth >= 300 && newWidth <= 800) { // límites mín y máx
-        setSidebarWidth(newWidth);
+        setZoom(newWidth / 100);
       }
     }
   };
@@ -1267,7 +1269,7 @@ export default function VisualWebEditor() {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isResizing]);
+  }, [isDragging]);
 
   const handleZoomChange = (newZoom: number) => {
     if (newZoom >= 25 && newZoom <= 200) { // limitamos el zoom entre 25% y 200%
@@ -1277,7 +1279,7 @@ export default function VisualWebEditor() {
 
   // Funciones del panel de propiedades
   const handleBlockSelect = (blockId: string) => {
-    setSelectedBlockId(blockId);
+    setSelectedBlock(blockId);
     setIsPropertiesPanelOpen(true);
   };
 
@@ -1289,7 +1291,7 @@ export default function VisualWebEditor() {
   };
 
   const handleClosePropertiesPanel = () => {
-    setSelectedBlockId(null);
+    setSelectedBlock(null);
     setIsPropertiesPanelOpen(false);
   };
 
@@ -1349,27 +1351,22 @@ export default function VisualWebEditor() {
   };
 
   useEffect(() => {
-    if (portfolioId) {
-      loadPortfolio(portfolioId);
-    }
-  }, [portfolioId, loadPortfolio]);
+    loadPortfolio();
+  }, [loadPortfolio]);
 
   useEffect(() => {
-    const saveInterval = setInterval(() => {
-      if (hasUnsavedChanges()) {
-        saveProjectState();
-      }
-    }, 30000);
-
-    return () => clearInterval(saveInterval);
-  }, [createDataHash, saveProjectState]);
+    const hash = createDataHash();
+    if (hash !== lastSavedHash) {
+      saveProjectState();
+    }
+  }, [blocks, createDataHash, lastSavedHash, saveProjectState]);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      if (isDragging && selectedBlockId) {
-        const block = blocks.find(b => b.id === selectedBlockId);
+      if (isDragging && selectedBlock) {
+        const block = blocks.find(b => b.id === selectedBlock);
         if (block) {
-          updateBlock(selectedBlockId, {
+          updateBlock(selectedBlock, {
             ...block,
             x: e.clientX - dragOffset.x,
             y: e.clientY - dragOffset.y
@@ -1380,7 +1377,7 @@ export default function VisualWebEditor() {
 
     window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, [isDragging, selectedBlockId, blocks, dragOffset, updateBlock]);
+  }, [isDragging, selectedBlock, blocks, dragOffset, updateBlock]);
 
   if (!isMounted || isLoading) {
     return (
@@ -1645,7 +1642,7 @@ export default function VisualWebEditor() {
                             id={blockId}
                             onDelete={deleteBlock}
                             onSelect={handleBlockSelect}
-                            isSelected={selectedBlockId === blockId}
+                            isSelected={selectedBlock === blockId}
                             properties={blockProperties[blockId]}
                           />
                         </div>
@@ -1673,13 +1670,13 @@ export default function VisualWebEditor() {
                     <X size={16} />
                   </button>
                 </div>
-                {selectedBlockId && (
+                {selectedBlock && (
                   <div className="mt-2 bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
                     <h4 className="font-medium text-gray-800 dark:text-white text-sm">
-                      {COMPONENTS_MAP[selectedBlockId.split('-')[0] as ComponentType]?.name}
+                      {COMPONENTS_MAP[selectedBlock.split('-')[0] as ComponentType]?.name}
                     </h4>
                     <p className="text-xs text-gray-600 dark:text-gray-400">
-                      {COMPONENTS_MAP[selectedBlockId.split('-')[0] as ComponentType]?.variants[parseInt(selectedBlockId.split('-')[1])]?.name}
+                      {COMPONENTS_MAP[selectedBlock.split('-')[0] as ComponentType]?.variants[parseInt(selectedBlock.split('-')[1])]?.name}
                     </p>
                   </div>
                 )}
@@ -1689,7 +1686,7 @@ export default function VisualWebEditor() {
               <div className="flex-1 overflow-y-auto overflow-x-hidden">
                 <div className="p-4">
                   <PropertiesPanel
-                    selectedBlockId={selectedBlockId}
+                    selectedBlockId={selectedBlock}
                     blockProperties={blockProperties}
                     onUpdateProperties={handlePropertiesUpdate}
                     onClose={handleClosePropertiesPanel}
