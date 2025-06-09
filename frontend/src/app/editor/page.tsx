@@ -296,7 +296,7 @@ const PropertiesPanel: React.FC<{
   );
 
   // Función para manejar la subida de archivos de imagen
-  const handleImageUpload = (key: string, file: File) => {
+  const handleImageUpload = (key: string, file: File): void => {
     if (file && file.type.startsWith('image/')) {
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -962,19 +962,19 @@ const PropertiesPanel: React.FC<{
 }
 
 export default function VisualWebEditor() {
-  const [currentPortfolio, setCurrentPortfolio] = useState<any>(null);
-  const [user, setUser] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [currentPortfolio, setCurrentPortfolio] = useState<Record<string, unknown>>({});
+  const [user, setUser] = useState<Record<string, unknown> | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [lastSaved, setLastSaved] = useState<Date>(new Date());
+  const [lastSaved, setLastSaved] = useState<string>('');
   const searchParams = useSearchParams();
   const router = useRouter();
   
-  const [projectName, setProjectName] = useState<string>('Mi Portfolio');
+  const [projectName, setProjectName] = useState<string>('');
   const [blocks, setBlocks] = useState<Block[]>([]);
   const [selectedBlock, setSelectedBlock] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [dragOffset, setDragOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [lastSavedHash, setLastSavedHash] = useState<string>('');
   const [portfolioId, setPortfolioId] = useState<string>('');
@@ -1095,14 +1095,6 @@ export default function VisualWebEditor() {
     return createDataHash() !== lastSaved;
   };
 
-  // Limpiar estado (no debería usarse normalmente)
-  const clearProjectState = () => {
-    setBlocks([]);
-    setBlockProperties({});
-    setSelectedBlock(null);
-    setIsPropertiesPanelOpen(false);
-  };
-
   // Función para deseleccionar al hacer click en el canvas
   const handleCanvasClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
@@ -1200,7 +1192,7 @@ export default function VisualWebEditor() {
     setIsPropertiesPanelOpen(true);
   };
 
-  const handlePropertiesUpdate = (blockId: string, properties: Record<string, unknown>) => {
+  const handlePropertiesUpdate = (blockId: string, properties: Record<string, unknown>): void => {
     setBlockProperties(prev => ({
       ...prev,
       [blockId]: properties
