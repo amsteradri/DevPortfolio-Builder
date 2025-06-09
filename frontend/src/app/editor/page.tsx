@@ -361,7 +361,7 @@ const PropertiesPanel: React.FC<{
       {/* Vista previa de la imagen */}
       {currentProperties[key] && (
         <div className="relative">
-          <img 
+          <Image 
             src={currentProperties[key]} 
             alt="Vista previa" 
             className="w-full h-32 object-cover rounded-md border border-gray-200 dark:border-gray-600"
@@ -501,7 +501,7 @@ const PropertiesPanel: React.FC<{
             </div>
             {currentProperties.profileImage && (
               <div className="mt-2">
-                <img 
+                <Image 
                   src={currentProperties.profileImage} 
                   alt="Preview perfil" 
                   className="w-16 h-16 object-cover rounded-full border"
@@ -551,7 +551,7 @@ const PropertiesPanel: React.FC<{
             </div>
             {currentProperties.backgroundImage && (
               <div className="mt-2">
-                <img 
+                <Image 
                   src={currentProperties.backgroundImage} 
                   alt="Preview fondo" 
                   className="w-full h-20 object-cover rounded border"

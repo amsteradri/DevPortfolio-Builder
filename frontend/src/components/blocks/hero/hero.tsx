@@ -506,7 +506,7 @@ export const HeroSplitScreen = ({ preview = false, properties = {} }: HeroProps)
       
       {/* Lado derecho - Imagen */}
       <div className="relative">
-        <img 
+        <Image 
           src={imageToUse} 
           alt="Perfil"
           className="w-full h-full object-cover"
