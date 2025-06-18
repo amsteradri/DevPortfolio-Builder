@@ -1,178 +1,214 @@
 # 🚀 DevPortfolio Builder
 
-Generador de portafolios para developers con editor visual, temas personalizables y exportación a GitHub Pages o ZIP.
+Portfolio generator for developers with a visual editor, customizable themes, and export to GitHub Pages or ZIP.
 
 ---
 
-## 🗺️ Roadmap de Desarrollo
+## 🖼️ What is DevPortfolio Builder?
 
-### 📦 Etapa 1: Setup Inicial
+DevPortfolio Builder is a web platform that allows you to create your professional portfolio instantly, for free, and without any coding skills. Just log in with your Google account (OAuth 2.0), choose and edit visual components, and your portfolio will be saved and available in the cloud. Perfect for showcasing your projects and skills to the world in minutes!
 
-- [x] Crear repositorio en GitHub (frontend y backend)
-- [x] Crear estructura de carpetas
-- [x] Inicializar proyectos con `npm init -y`
-- [x] Crear archivos base: `docker-compose.yml`, `.dockerignore`, `.gitignore`
-- [x] Inicializar frontend con `create-next-app`
-- [x] Configurar TypeScript y Tailwind CSS
-- [x] Dockerfile para frontend
-
-### 🎨 Etapa 2: Frontend (Next.js + Tailwind)
-
-- [x] Crear app con `create-next-app` en carpeta `frontend`
-- [x] Configurar Tailwind CSS manualmente
-- [x] Añadir rutas: login, editor, perfil, preview usando App Router
-- [x] Crear componentes principales:
-  - [x] **EditorPage** - Interfaz de edición del portafolio
-  - [x] **LoginPage** - Autenticación de usuarios
-  - [x] **PreviewPage** - Vista previa del portafolio
-  - [x] **ProfilePage** - Gestión de cuenta de usuario
-  - [x] **Footer** - Pie de página consistente con copyright
-- [ ] Implementar sistema de temas (dark/light + paletas)
-- [ ] Implementar componentes base:
-  - [x] Navbar, Sidebar
-  - [ ] Editor de bloques (nombre, proyectos, redes)
-  - [ ] Previsualización en tiempo real
-- [ ] Implementar editor visual con `react-beautiful-dnd` o `dnd-kit`
-- [ ] Guardar configuraciones del portafolio en el estado global
-- [ ] Conectar con backend para guardar/recuperar la configuración
-
-### 🔐 Etapa 3: Autenticación
-
-- [ ] Crear sistema de login/register con JWT
-- [ ] Proteger rutas privadas
-- [ ] Guardar token en `localStorage` o `cookie`
-- [ ] Middleware de autenticación en backend
-
-### ⚙️ Etapa 4: Backend (Node.js + Express + PostgreSQL)
-
-- [ ] Conectar a PostgreSQL con `pg` o `Prisma`
-- [ ] Endpoints API REST:
-  - `POST /register`
-  - `POST /login`
-  - `GET /user/config`
-  - `PUT /user/config`
-  - `POST /export/zip`
-  - `POST /export/github`
-- [ ] Configurar Redis para cachear configuraciones
-- [ ] Validación con `Joi` o `Zod`
-
-### 💾 Etapa 5: Exportación y Publicación
-
-- [ ] Generar HTML + CSS desde la configuración (usando templates y ejs/pug)
-- [ ] Comprimir como ZIP (`archiver`, `adm-zip`)
-- [ ] Conectar con GitHub API para crear repos y subir código
-- [ ] Opción de exportar directamente a GitHub Pages
-- [ ] Subir archivos ZIP a S3 (opcional)
-
-### 📚 Etapa 6: Base de Datos
-
-- [ ] Crear tablas:
-  - `users`
-  - `portfolios`
-  - `themes`
-- [ ] Relaciones usuario ↔ portafolios
-
-### 🐳 Etapa 7: Dockerización
-
-- [x] Dockerfile frontend (Next.js)
-- [ ] Dockerfile backend
-- [ ] Docker Compose con PostgreSQL, Redis, Nginx (opcional)
-- [ ] Volúmenes persistentes para PostgreSQL
-- [ ] Variables de entorno con `.env`
-
-### ☁️ Etapa 8: DevOps y Despliegue
-
-- [ ] Desplegar en EC2 con Terraform
-- [ ] Crear CI/CD con GitHub Actions:
-  - Lint + Test
-  - Build
-  - Deploy automático
-- [ ] Subir frontend al bucket S3 con `static hosting`
-- [ ] Backend expuesto vía EC2 + Nginx
-
-### 📈 Etapa 9: Optimización y Bonus
-
-- [ ] Añadir analíticas (Google Analytics o Plausible)
-- [ ] Añadir login con GitHub OAuth
-- [ ] Panel de administrador para ver actividad
-- [ ] Soporte para varios idiomas (i18n)
+### Main Features
+- **Visual drag & drop editor:** Easily add, move, and customize content blocks.
+- **Editable components:** Personalize your info, projects, social links, skills, and more.
+- **Data persistence:** Your portfolios are saved in the cloud and can be edited anytime.
+- **User accounts:** Secure access via Google OAuth 2.0.
+- **Export:** Publish your portfolio to GitHub Pages or download it as a ZIP file.
+- **Instant public view:** Share your portfolio with a unique URL.
+- **Advanced options:** Themes, live preview, portfolio duplication, multi-portfolio management, and more.
 
 ---
 
-## 📦 Estructura del Proyecto
+## 🖥️ Visual Flow & Main Features
+
+Below you can see the main screens and user flow of the application:
+
+### 1. Landing page
+
+![Landing page](images/Captura.PNG)
+
+- Welcome screen introducing the platform and its benefits. Start with a single click.
+
+### 2. Log in page
+
+![Log in page](images/Captura2.PNG)
+
+- Secure login with Google. Your data is always protected and you can access your portfolios from anywhere.
+
+### 3. Portfolios dashboard
+
+![Portfolios dashboard](images/Captura3.PNG)
+
+- View all your saved portfolios, search, edit, duplicate, or delete them easily.
+
+### 4. Visual drag and drop editor
+
+![Visual drag and drop editor](images/Captura4.PNG)
+
+- Drag and drop components, edit text, images, colors, and structure your portfolio in real time.
+
+### 5. Properties and customization panel
+
+![Properties and customization panel](images/Captura5.PNG)
+
+- Customize each block/component with advanced options: text, colors, images, links, and more.
+
+### 6. Many available components
+
+![Many available components](images/Captura6.PNG)
+
+- Choose from a wide variety of ready-to-use components to build a unique and professional portfolio.
+
+### 7. Account and profile management
+
+![Account and profile management](images/Captura7.PNG)
+
+- Access your profile, manage your data and portfolios, and log out securely.
+
+### 8. Final experience and public portfolio
+
+![Final experience and public portfolio](images/Captura8.PNG)
+
+- Share your portfolio with a unique and professional URL. Ready to show the world!
+
+---
+
+## 🛠️ Main Technologies
+
+- **Frontend:** Next.js 15, React 18, Tailwind CSS, TypeScript, dnd-kit, Lucide, Framer Motion
+- **Backend:** FastAPI, SQLAlchemy, Authlib, Pydantic, Uvicorn, httpx
+- **Database:** PostgreSQL 15
+- **Authentication:** OAuth2 Google
+- **Containers:** Docker, Docker Compose
+
+---
+
+## 🏗️ Architecture
 
 ```
-dev-portfolio-builder/
-├── backend/
-│   ├── controllers/
-│   ├── models/
-│   ├── routes/
-│   ├── middleware/
-│   └── index.js
-├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   │   └── Footer.jsx           # ✅ Footer component
-│   │   ├── pages/
-│   │   │   ├── EditorPage.jsx       # ✅ Portfolio editor
-│   │   │   ├── LoginPage.jsx        # ✅ User authentication
-│   │   │   ├── PreviewPage.jsx      # ✅ Portfolio preview
-│   │   │   └── ProfilePage.jsx      # ✅ Account management
-│   │   ├── context/
-│   │   └── App.jsx
-├── docker/
-│   ├── frontend.Dockerfile
-│   ├── backend.Dockerfile
-│   └── docker-compose.yml
-├── terraform/
-│   └── main.tf
-├── .github/workflows/
-│   └── ci.yml
-└── README.md
+DevPortfolio-Builder/
+├── backend/         # REST API (FastAPI)
+│   └── app/
+│       ├── api/         # Endpoints (auth, portfolios)
+│       ├── services/    # Business logic
+│       ├── models.py    # SQLAlchemy models
+│       ├── schemas.py   # Pydantic schemas
+│       ├── database.py  # DB connection
+│       └── migrate.py   # Automatic migrations
+├── frontend/        # Next.js application
+│   └── src/app/
+│       ├── editor/      # Visual drag & drop editor
+│       ├── login/       # Google login
+│       ├── profile/     # User profile
+│       ├── preview/     # Portfolio preview
+│       ├── portfolios/  # Portfolio management
+│       ├── p/[name]/    # Public portfolio
+│       └── auth/        # Login callback and feedback
+├── docker-compose.yml   # Service orchestration
+└── .env                 # Environment variables
 ```
 
 ---
 
-## 📝 Último Commit
+## 🌐 Backend Endpoints (FastAPI)
 
-**Add main application pages and footer component**
-- ✅ Created EditorPage component for portfolio editing interface
-- ✅ Created LoginPage component for user authentication  
-- ✅ Created PreviewPage component for portfolio preview functionality
-- ✅ Created ProfilePage component for user account management
-- ✅ Added Footer component for consistent site-wide footer with copyright information
+### Authentication
+- `GET /auth/login` — Redirects to Google OAuth
+- `GET /auth/callback` — Google OAuth callback
+- `GET /auth/logout` — Log out
+- `GET /auth/me/{user_id}` — User info
+- `GET /auth/users` — List all users
 
----
-
-## 🧪 Checkpoints Clave
-
-- [ ] CRUD de portafolio funcionando
-- [ ] Editor drag & drop estable
-- [ ] Exportación en ZIP sin errores
-- [ ] Deploy automático funcionando
-- [ ] Seguridad JWT validada
-- [ ] Interfaz atractiva y usable
+### Portfolios
+- `GET /api/portfolios/user/{user_id}` — User's portfolios
+- `POST /api/portfolios/` — Create portfolio
+- `GET /api/portfolios/{portfolio_id}` — Get portfolio by ID
+- `GET /api/portfolios/name/{portfolio_name}` — Get portfolio by name
+- `PUT /api/portfolios/{portfolio_id}` — Update portfolio
+- `DELETE /api/portfolios/{portfolio_id}` — Delete portfolio
+- `POST /api/portfolios/{portfolio_id}/duplicate` — Duplicate portfolio
 
 ---
 
-## 🎓 Habilidades que vas a reforzar
+## 🖥️ Main Frontend Routes (Next.js)
 
-- Diseño de UI con Tailwind
-- Arquitectura cliente-servidor
-- Gestión de estado avanzado en React
-- Seguridad con JWT
-- CI/CD con GitHub Actions
-- Infraestructura como código (Terraform)
-- Dockerización profesional
+- `/` — Landing page
+- `/login` — Google login
+- `/register` — User registration
+- `/editor` — Visual drag & drop editor
+- `/portfolios` — Portfolio list and management
+- `/profile` — User profile
+- `/preview` — Portfolio preview
+- `/p/[name]` — Public portfolio (friendly URL)
+- `/auth/success` — Login success
+- `/auth/error` — Login error
 
 ---
 
-## 🚀 Próximos pasos
+## 🐳 Deploy & Usage with Docker Compose
 
-1. ✅ ~~Terminar setup de frontend con rutas y componentes base~~
-2. Implementar navegación entre páginas y estado global
-3. Dockerizar backend y conectar con PostgreSQL
-4. Implementar login y gestión de usuario
-5. Conectar editor visual con backend
-6. Añadir exportación a ZIP y GitHub
-7. Automatizar el despliegue y CI/CD
+1. Copy the `.env.example` file to `.env` and set your variables (Google OAuth, DB, etc).
+2. Run:
+
+```bash
+docker compose up --build
+```
+
+3. Access:
+   - Frontend: [http://localhost:3000](http://localhost:3000)
+   - Backend: [http://localhost:8000/docs](http://localhost:8000/docs) (Swagger)
+
+---
+
+## ✅ Project Status
+
+- [x] Next.js frontend with visual drag & drop editor
+- [x] FastAPI backend with RESTful endpoints
+- [x] Google OAuth authentication
+- [x] Portfolio CRUD
+- [x] Export and public view of portfolios
+- [x] Full dockerization
+- [x] Automatic database migrations
+- [x] User and profile management
+- [x] Protected routes and login feedback
+
+---
+
+## 📚 API Usage Example
+
+```http
+# Get a user's portfolios
+GET /api/portfolios/user/1
+
+# Create a portfolio
+POST /api/portfolios/
+{
+  "name": "My Portfolio",
+  "content": { ... },
+  "user_id": 1
+}
+
+# Duplicate a portfolio
+POST /api/portfolios/2/duplicate
+```
+
+---
+
+## 🚀 What can you learn with this project?
+
+- Modern fullstack architecture (Next.js + FastAPI)
+- OAuth2 integration (Google)
+- Advanced drag & drop in React
+- Professional dockerization
+- State management and protected routes
+- REST API best practices
+
+---
+
+## 👨‍💻 Author
+
+- Adrián Gutiérrez (amsteradri@gmail.com)
+
+---
+
+Project finished and ready for production! 🎉
